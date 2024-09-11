@@ -10,7 +10,7 @@ import Foundation
 struct User: Decodable {
     let _id: String
     let username: String?
-    let email: String
+    let email: String?
     let image: String?
     let friends: [String]?
     let location: Location

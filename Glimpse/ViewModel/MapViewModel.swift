@@ -9,7 +9,12 @@ import Foundation
 
 class MapViewModel{
     
-   func getUserInfoByToken(token: String, completion: @escaping (User?) -> Void) {
+   func getUserInfoByToken(completion: @escaping (User?) -> Void) {
+       guard let token = UserDefaults.standard.string(forKey: "authToken") else {
+           print("invalid token")
+           return
+       }
+       
        guard let url = URL(string: "https://glimpse-server.onrender.com/api/users/getUserInfoByToken/\(token)") else {
            print("Invalid URL")
            completion(nil)

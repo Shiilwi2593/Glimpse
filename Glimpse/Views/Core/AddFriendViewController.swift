@@ -103,16 +103,29 @@ extension AddFriendViewController: UITableViewDataSource, UITableViewDelegate{
         let searchLst = frVM.searchLst[indexPath.row]
         
         if let token = UserDefaults.standard.string(forKey: "authToken") {
-            mapVM.getUserInfoByToken(token: token) { currentUser in
+            mapVM.getUserInfoByToken { currentUser in
                 DispatchQueue.main.async {
                     if let currentUser = currentUser, let friendId = searchLst["_id"] as? String {
                         if currentUser._id == friendId {
                             cell.addFriendButton.isHidden = true
                         } else {
+                            // Kiểm tra nếu là bạn bè
                             self.frVM.isFriend(friendId: friendId) { isFriend in
                                 DispatchQueue.main.async {
-                                    print(isFriend)
-                                    cell.addFriendButton.isHidden = isFriend
+                                    if isFriend {
+                                        cell.addFriendButton.isHidden = true
+                                    } else {
+                                        // Kiểm tra nếu đang pending
+                                        self.frVM.isPending(receiverId: friendId) { isPending in
+                                            DispatchQueue.main.async {
+                                                if isPending {
+                                                    cell.addFriendButton.setTitle("Pending", for: .normal)
+                                                    cell.addFriendButton.backgroundColor = .systemGray5
+                                                    cell.addFriendButton.isEnabled = false
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -128,6 +141,7 @@ extension AddFriendViewController: UITableViewDataSource, UITableViewDelegate{
         cell.addFriendButton.addTarget(self, action: #selector(didTapAddFriendBtn), for: .touchUpInside)
         return cell
     }
+
     
     
     @objc private func didTapAddFriendBtn(_ sender: UIButton){

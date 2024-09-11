@@ -206,12 +206,7 @@ class FriendsViewModel {
         
     }
     
-    func addToFriendList(senderId: String){
-        guard let token = UserDefaults.standard.string(forKey: "authToken") else {
-            print("invalid token")
-            return
-        }
-        
+    func addToFriendList(id1: String, id2: String){
         guard let url = URL(string: "http://localhost:3000/api/users/addToFriendList") else {
             print("invalid url")
             return
@@ -223,8 +218,8 @@ class FriendsViewModel {
         
         
         let body: [String: Any] = [
-            "token": token,
-            "friendId": senderId
+            "id1": id1,
+            "id2": id2
         ]
         
         request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
@@ -345,5 +340,63 @@ class FriendsViewModel {
         task.resume()
     }
     
+    func isPending(receiverId: String, completion: @escaping (Bool) -> Void) {
+        guard let token = UserDefaults.standard.string(forKey: "authToken") else {
+            print("invalid token")
+            return
+        }
+        
+        guard let url = URL(string: "http://localhost:3000/api/friend/isPending") else {
+            print("invalid url")
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST" // Phải sử dụng POST
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: Any] = [
+            "token": token,
+            "receiverId": receiverId
+        ]
+        
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("Invalid response")
+                return
+            }
+            
+            print("HTTP Status Code: \(httpResponse.statusCode)")
+            
+            guard let data = data else {
+                print("No data received")
+                return
+            }
+            
+            do {
+                let jsonResponse = try JSONSerialization.jsonObject(with: data, options: [])
+                print("Response JSON: \(jsonResponse)")
+                
+                // Kiểm tra nếu có friendRequest đang pending
+                if let responseDict = jsonResponse as? [String: Any], let friendRequests = responseDict["friendRequest"] as? [[String: Any]], !friendRequests.isEmpty {
+                    completion(true) // Đang pending
+                } else {
+                    completion(false)
+                }
+            } catch let parseError {
+                print("JSON parse error: \(parseError.localizedDescription)")
+            }
+        }
+        
+        task.resume()
+    }
+
     
 }

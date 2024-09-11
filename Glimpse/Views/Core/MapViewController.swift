@@ -6,24 +6,26 @@ import CoreLocation
 
 class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDelegate {
     
-    var mapView: MKMapView!
-    var locationManager: CLLocationManager!
-    let viewModel = MapViewModel()
-    var updateTimer: Timer?
-    var isInitialLocationSet = false
+    private var mapView: MKMapView!
+    private var locationManager: CLLocationManager!
+    private let viewModel = MapViewModel()
+    private var updateTimer: Timer?
+    private var isInitialLocationSet = false
     
-    var userImage: UIImage?
-    var userName: String?
-
+    private var userImage: UIImage?
+    private var userName: String?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         setupMap()
         setupLocationManager()
         fetchUserInfo()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(handleLogoutNotification), name: .didLogout, object: nil)
     }
-
-    func setupMap() {
+    
+    private func setupMap() {
         mapView = MKMapView(frame: view.bounds)
         mapView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         mapView.delegate = self
@@ -31,8 +33,8 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         
         mapView.showsUserLocation = false // Hide the default blue dot
     }
-
-    func setupLocationManager() {
+    
+    private func setupLocationManager() {
         locationManager = CLLocationManager()
         locationManager.delegate = self
         locationManager.requestWhenInUseAuthorization()
@@ -44,20 +46,25 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
             print("Location services are not enabled")
         }
     }
-
-    func fetchUserInfo() {
+    
+    private func stopLocationUpdates() {
+        updateTimer?.invalidate()
+        updateTimer = nil
+        locationManager.stopUpdatingLocation()
+    }
+    
+    private func fetchUserInfo() {
         guard let token = UserDefaults.standard.string(forKey: "authToken") else {
             print("Token not found in UserDefaults")
             return
         }
         
-        viewModel.getUserInfoByToken(token: token) { user in
+        viewModel.getUserInfoByToken { [weak self] user in
             DispatchQueue.main.async {
                 if let user = user {
-                    print("User info: \(user)")
-                    self.userName = user.username
-                    if let url = URL(string: user.image!) {
-                        self.downloadImage(from: url)
+                    self?.userName = user.username
+                    if let urlString = user.image, let url = URL(string: urlString) {
+                        self?.downloadImage(from: url)
                     }
                 } else {
                     print("Failed to fetch user info.")
@@ -65,14 +72,14 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
             }
         }
     }
-
-    func downloadImage(from url: URL) {
-        URLSession.shared.dataTask(with: url) { data, response, error in
+    
+    private func downloadImage(from url: URL) {
+        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
             guard let data = data, error == nil else { return }
             DispatchQueue.main.async {
-                self.userImage = UIImage(data: data)
-                if let location = self.locationManager.location {
-                    self.updateMapLocation(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)
+                self?.userImage = UIImage(data: data)
+                if let location = self?.locationManager.location {
+                    self?.updateMapLocation(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)
                 }
             }
         }.resume()
@@ -86,11 +93,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         let longitude = location.coordinate.longitude
         
         if !isInitialLocationSet {
-            let region = MKCoordinateRegion(
-                center: location.coordinate,
-                latitudinalMeters: 1000,
-                longitudinalMeters: 1000
-            )
+            let region = MKCoordinateRegion(center: location.coordinate, latitudinalMeters: 1000, longitudinalMeters: 1000)
             mapView.setRegion(region, animated: true)
             isInitialLocationSet = true
         }
@@ -104,7 +107,8 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
     }
     
     // MARK: - Helper Methods
-    func updateUserLocation(latitude: Double, longitude: Double) {
+    
+    private func updateUserLocation(latitude: Double, longitude: Double) {
         guard let token = UserDefaults.standard.string(forKey: "authToken") else {
             print("Token not found")
             return
@@ -121,7 +125,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         }
     }
     
-    func updateMapLocation(latitude: Double, longitude: Double) {
+    private func updateMapLocation(latitude: Double, longitude: Double) {
         let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
         
         // Remove existing annotations
@@ -134,7 +138,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         mapView.addAnnotation(annotation)
     }
     
-    @objc func updateLocationPeriodically() {
+    @objc private func updateLocationPeriodically() {
         if let location = locationManager.location {
             let latitude = location.coordinate.latitude
             let longitude = location.coordinate.longitude
@@ -144,13 +148,21 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         }
     }
     
+    @objc private func handleLogoutNotification() {
+        stopLocationUpdates()
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self, name: .didLogout, object: nil)
+    }
+    
     // MARK: - MKMapViewDelegate
     
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         if annotation is MKUserLocation {
             return nil
         }
-
+        
         let reuseID = "customAnnotation"
         var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: reuseID) as? MKAnnotationView
         
@@ -167,8 +179,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
             imageView.image = userImage ?? UIImage(named: "defaultavatar")
             imageView.layer.cornerRadius = 30
             imageView.clipsToBounds = true
-            
-            // Add border
             imageView.layer.borderWidth = 3
             imageView.layer.borderColor = UIColor.white.cgColor
             
@@ -185,16 +195,11 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
             
             // Set containerView as the content of annotationView
             annotationView?.addSubview(containerView)
-            
-            // Adjust the size of annotationView
             annotationView?.frame.size = containerView.frame.size
-            
-            // Disable default callout
             annotationView?.canShowCallout = false
             
         } else {
             annotationView?.annotation = annotation
-            // Update annotation view content if needed
             if let containerView = annotationView?.viewWithTag(100) {
                 if let imageView = containerView.subviews.first as? UIImageView {
                     imageView.image = userImage ?? UIImage(named: "defaultavatar")
@@ -207,4 +212,8 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         
         return annotationView
     }
+}
+
+extension Notification.Name {
+    static let didLogout = Notification.Name("didLogout")
 }

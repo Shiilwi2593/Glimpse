@@ -22,7 +22,7 @@
 		2B8F23442C79CB0D005406DD /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8F23432C79CB0D005406DD /* User.swift */; };
 		2B8F23462C79D198005406DD /* SignUp2ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8F23452C79D198005406DD /* SignUp2ViewController.swift */; };
 		2B8F23482C79D773005406DD /* SignUpViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8F23472C79D773005406DD /* SignUpViewModel.swift */; };
-		2BB1146C2C903C7E008E94E1 /* FriendListCellTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BB1146B2C903C7E008E94E1 /* FriendListCellTableViewCell.swift */; };
+		2B92BA7F2C919A4000F882E7 /* AccountViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B92BA7E2C919A4000F882E7 /* AccountViewModel.swift */; };
 		2BB1146E2C903D36008E94E1 /* SearchListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BB1146D2C903D36008E94E1 /* SearchListCell.swift */; };
 		2BD5973A2C6A54B000E56CBB /* SignUpViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BD597392C6A54B000E56CBB /* SignUpViewController.swift */; };
 		2BE0E8682C636D8C00D48CEF /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE0E8672C636D8C00D48CEF /* AppDelegate.swift */; };
@@ -52,7 +52,7 @@
 		2B8F23432C79CB0D005406DD /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		2B8F23452C79D198005406DD /* SignUp2ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUp2ViewController.swift; sourceTree = "<group>"; };
 		2B8F23472C79D773005406DD /* SignUpViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpViewModel.swift; sourceTree = "<group>"; };
-		2BB1146B2C903C7E008E94E1 /* FriendListCellTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendListCellTableViewCell.swift; sourceTree = "<group>"; };
+		2B92BA7E2C919A4000F882E7 /* AccountViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountViewModel.swift; sourceTree = "<group>"; };
 		2BB1146D2C903D36008E94E1 /* SearchListCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchListCell.swift; sourceTree = "<group>"; };
 		2BD597392C6A54B000E56CBB /* SignUpViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpViewController.swift; sourceTree = "<group>"; };
 		2BE0E8642C636D8C00D48CEF /* Glimpse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Glimpse.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -90,7 +90,6 @@
 				2BEE452A2C8C3D5500712329 /* AddFriendViewController.swift */,
 				2B66D34E2C8F20E7002CC70C /* FriendRequestCell.swift */,
 				2B66D3502C8F3C4E002CC70C /* FriendRequestsViewController.swift */,
-				2BB1146B2C903C7E008E94E1 /* FriendListCellTableViewCell.swift */,
 				2BB1146D2C903D36008E94E1 /* SearchListCell.swift */,
 			);
 			path = Core;
@@ -154,6 +153,7 @@
 				2B1534842C7B33870071C228 /* LoginViewModel.swift */,
 				2B1534862C7B414F0071C228 /* MapViewModel.swift */,
 				2BEE452C2C8C4AB800712329 /* FriendsViewModel.swift */,
+				2B92BA7E2C919A4000F882E7 /* AccountViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -257,7 +257,6 @@
 				2B1534822C7B13CC0071C228 /* AccountViewController.swift in Sources */,
 				2BF0D2A12C81BF6500D5F0E0 /* ImageUrlFunc.swift in Sources */,
 				2BE0E8802C637E4A00D48CEF /* LoginViewController.swift in Sources */,
-				2BB1146C2C903C7E008E94E1 /* FriendListCellTableViewCell.swift in Sources */,
 				2BE0E8832C6382A000D48CEF /* transferToHexColor.swift in Sources */,
 				2B1534802C7B13C20071C228 /* FriendsViewController.swift in Sources */,
 				2B1534852C7B33870071C228 /* LoginViewModel.swift in Sources */,
@@ -272,6 +271,7 @@
 				2B1534872C7B414F0071C228 /* MapViewModel.swift in Sources */,
 				2BE0E86A2C636D8C00D48CEF /* SceneDelegate.swift in Sources */,
 				2B15347C2C7B12F40071C228 /* TabBarViewController.swift in Sources */,
+				2B92BA7F2C919A4000F882E7 /* AccountViewModel.swift in Sources */,
 				2B8F23442C79CB0D005406DD /* User.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

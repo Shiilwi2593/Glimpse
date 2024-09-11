@@ -79,9 +79,10 @@ extension FriendRequestsViewController: UITableViewDelegate, UITableViewDataSour
     @objc private func didTapAccept(_ sender: UIButton) {
         let index = sender.tag
         let data = viewmodel.friendRequest[index]
-        if let sender = data["senderId"] as? [String: Any] {
+        if let sender = data["senderId"] as? [String: Any], let receiver = data["receiverId"] as? [String: Any] {
             let senderId = sender["_id"] as! String
-            viewmodel.addToFriendList(senderId: senderId)
+            let receiverId = receiver["_id"] as! String
+            viewmodel.addToFriendList(id1: senderId, id2: receiverId)
             viewmodel.removeFriendRequest(requestid: data["_id"] as! String)
         }
     }
