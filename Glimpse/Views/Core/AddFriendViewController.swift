@@ -9,6 +9,7 @@ import UIKit
 
 class AddFriendViewController: UIViewController {
     
+    var user: User?
     let frVM = FriendsViewModel()
     let mapVM = MapViewModel()
     
@@ -48,9 +49,10 @@ class AddFriendViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
+        self.tabBarController?.tabBar.isHidden = true
         setUp()
-        
     }
+    
     
     //MARK: SetUp
     private func setUp(){
@@ -65,7 +67,7 @@ class AddFriendViewController: UIViewController {
         
         NSLayoutConstraint.activate([
             searchInput.leadingAnchor.constraint(equalTo: view.leadingAnchor,constant: 20),
-            searchInput.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor,constant: 30),
+            searchInput.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor,constant: 10),
             searchInput.widthAnchor.constraint(equalToConstant: 320),
             searchInput.heightAnchor.constraint(equalToConstant: 44),
             
@@ -86,8 +88,10 @@ class AddFriendViewController: UIViewController {
         let keyword = searchInput.text ?? ""
         frVM.findUserByKeyword(keyword: keyword)
         frVM.onSearchLstUpdated = {
-            DispatchQueue.main.async{
-                self.searchLstTableVw.reloadData()
+            DispatchQueue.main.async {
+                UIView.performWithoutAnimation {
+                    self.searchLstTableVw.reloadData()
+                }
             }
         }
     }
@@ -102,14 +106,13 @@ extension AddFriendViewController: UITableViewDataSource, UITableViewDelegate{
         let cell = tableView.dequeueReusableCell(withIdentifier: "SearchLstCell", for: indexPath) as! SearchListCell
         let searchLst = frVM.searchLst[indexPath.row]
         
-        if let token = UserDefaults.standard.string(forKey: "authToken") {
+        if let _ = UserDefaults.standard.string(forKey: "authToken") {
             mapVM.getUserInfoByToken { currentUser in
                 DispatchQueue.main.async {
                     if let currentUser = currentUser, let friendId = searchLst["_id"] as? String {
                         if currentUser._id == friendId {
                             cell.addFriendButton.isHidden = true
                         } else {
-                            // Kiểm tra nếu là bạn bè
                             self.frVM.isFriend(friendId: friendId) { isFriend in
                                 DispatchQueue.main.async {
                                     if isFriend {
@@ -136,12 +139,29 @@ extension AddFriendViewController: UITableViewDataSource, UITableViewDelegate{
         
         let username = searchLst["username"] ?? "unknown"
         cell.friendNameLabel.text = "\(username)"
-        
         cell.addFriendButton.tag = indexPath.row
         cell.addFriendButton.addTarget(self, action: #selector(didTapAddFriendBtn), for: .touchUpInside)
         return cell
     }
-
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let searchLst = self.frVM.searchLst[indexPath.row]
+        let id = searchLst["_id"]
+        let vc = OrtherAccountViewController(id: id as! String)
+        
+        if let sheet = vc.sheetPresentationController {
+            sheet.detents = [.large()]
+            sheet.prefersGrabberVisible = true
+            sheet.prefersScrollingExpandsWhenScrolledToEdge = false
+            sheet.preferredCornerRadius = 30
+        }
+        DispatchQueue.main.async {
+            self.present(vc, animated: true, completion: nil)
+        }
+        
+    }
+    
+    
     
     
     @objc private func didTapAddFriendBtn(_ sender: UIButton){
@@ -151,5 +171,6 @@ extension AddFriendViewController: UITableViewDataSource, UITableViewDelegate{
         frVM.sendFriendRequest(receiverId: receiverId)
         print("add button tapped")
     }
+    
     
 }

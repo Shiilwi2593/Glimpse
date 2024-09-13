@@ -90,4 +90,48 @@ class MapViewModel{
         task.resume()
     }
     
+    func fetchFriendsLocation(completion: @escaping ([[String: Any]]?) -> Void){
+        guard let token = UserDefaults.standard.string(forKey: "authToken") else {
+            print("invalid token")
+            return
+        }
+        
+        guard let url = URL(string: "https://glimpse-server.onrender.com/api/users/fetchFriendsLocation?token=\(token)") else {
+            print("invalid token")
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        let task = URLSession.shared.dataTask(with: request){data, response, error in
+            if let error = error {
+                print(error)
+                return
+            }
+            
+            if let httpresponse = response as? HTTPURLResponse, httpresponse.statusCode != 200{
+                print(httpresponse.statusCode)
+                return
+            }
+            
+            guard let data = data else {
+                print("no data")
+                return
+            }
+            
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]{
+                    let friends = json["friends"] as? [[String: Any]]
+                    completion(friends)
+                    print(friends)
+                }
+            } catch {
+                print(error)
+            }
+        }
+        task.resume()
+        
+    }
+    
 }

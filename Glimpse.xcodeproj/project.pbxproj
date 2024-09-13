@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		2B0DAE172C7F2852009F6FD3 /* alertFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0DAE162C7F2852009F6FD3 /* alertFont.swift */; };
+		2B0F25F82C92D12400DE3F92 /* OrtherAccountViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0F25F72C92D12400DE3F92 /* OrtherAccountViewController.swift */; };
 		2B15347C2C7B12F40071C228 /* TabBarViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B15347B2C7B12F40071C228 /* TabBarViewController.swift */; };
 		2B15347E2C7B13B40071C228 /* MapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B15347D2C7B13B40071C228 /* MapViewController.swift */; };
 		2B1534802C7B13C20071C228 /* FriendsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B15347F2C7B13C20071C228 /* FriendsViewController.swift */; };
@@ -38,6 +39,7 @@
 
 /* Begin PBXFileReference section */
 		2B0DAE162C7F2852009F6FD3 /* alertFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = alertFont.swift; sourceTree = "<group>"; };
+		2B0F25F72C92D12400DE3F92 /* OrtherAccountViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrtherAccountViewController.swift; sourceTree = "<group>"; };
 		2B15347B2C7B12F40071C228 /* TabBarViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarViewController.swift; sourceTree = "<group>"; };
 		2B15347D2C7B13B40071C228 /* MapViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapViewController.swift; sourceTree = "<group>"; };
 		2B15347F2C7B13C20071C228 /* FriendsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsViewController.swift; sourceTree = "<group>"; };
@@ -134,6 +136,7 @@
 				2B8F23452C79D198005406DD /* SignUp2ViewController.swift */,
 				2B15347B2C7B12F40071C228 /* TabBarViewController.swift */,
 				2B159E802C7DBF6C00E3F0CF /* OTPSheetViewController.swift */,
+				2B0F25F72C92D12400DE3F92 /* OrtherAccountViewController.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -263,6 +266,7 @@
 				2B66D34F2C8F20E7002CC70C /* FriendRequestCell.swift in Sources */,
 				2BE0E86C2C636D8C00D48CEF /* StartViewController.swift in Sources */,
 				2B8F23482C79D773005406DD /* SignUpViewModel.swift in Sources */,
+				2B0F25F82C92D12400DE3F92 /* OrtherAccountViewController.swift in Sources */,
 				2B66D3512C8F3C4E002CC70C /* FriendRequestsViewController.swift in Sources */,
 				2BE0E8682C636D8C00D48CEF /* AppDelegate.swift in Sources */,
 				2BEE452B2C8C3D5500712329 /* AddFriendViewController.swift in Sources */,

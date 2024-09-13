@@ -43,6 +43,7 @@ class FriendsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
+        self.tabBarController?.tabBar.isHidden = false
         title = "Friends"
         setup()
         setupFriendListVw()
@@ -55,6 +56,7 @@ class FriendsViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        self.tabBarController?.tabBar.isHidden = false
         viewDidLoad()
     }
     
@@ -110,7 +112,7 @@ class FriendsViewController: UIViewController {
     @objc private func didTapEnvelopeBtn() {
         let friendRequestViewController = FriendRequestsViewController()
         if let sheet = friendRequestViewController.sheetPresentationController{
-            sheet.detents = [.medium()]
+            sheet.detents = [.medium(), .large()]
             sheet.prefersGrabberVisible = true
             sheet.prefersScrollingExpandsWhenScrolledToEdge = false
         }
@@ -119,12 +121,7 @@ class FriendsViewController: UIViewController {
     
     @objc private func didtapAddFrBtn() {
         let addFriendViewController = AddFriendViewController()
-        if let sheet = addFriendViewController.sheetPresentationController {
-            sheet.detents = [.large()]
-            sheet.prefersGrabberVisible = true
-            sheet.prefersScrollingExpandsWhenScrolledToEdge = false
-        }
-        present(addFriendViewController, animated: true, completion: nil)
+        navigationController?.pushViewController(addFriendViewController, animated: true)
     }
 }
 
@@ -141,10 +138,22 @@ extension FriendsViewController: UITableViewDelegate, UITableViewDataSource {
         return cell
     }
     
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let friends = viewModel.friends[indexPath.row]
+        let id = friends["_id"]
+        let vc = OrtherAccountViewController(id: id as! String)
+        if let sheet = vc.sheetPresentationController{
+            sheet.detents = [.large()]
+            sheet.prefersGrabberVisible = true
+            sheet.prefersScrollingExpandsWhenScrolledToEdge = false
+            sheet.preferredCornerRadius = 30
+        }
+        present(vc, animated: true)
+    }
+    
     @objc private func didTapAddFriend(_ sender: UIButton) {
         let friendIndex = sender.tag
         let friend = viewModel.friends[friendIndex]
-        // Handle the add friend logic here
         print("Add friend tapped for: \(friend["username"] ?? "unknown")")
     }
 }

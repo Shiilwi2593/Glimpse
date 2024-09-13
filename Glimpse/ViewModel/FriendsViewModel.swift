@@ -9,7 +9,7 @@ import Foundation
 
 class FriendsViewModel {
     
-    //MARK: -FriendLists
+    //MARK: -Friend Lists
     var friends: [[String: Any]] = []
     var onFriendsUpdated: (() -> Void)?
     
@@ -19,7 +19,7 @@ class FriendsViewModel {
             return
         }
         
-        guard let url = URL(string: "http://localhost:3000/api/users/getFriendList?token=\(token)") else{
+        guard let url = URL(string: "https://glimpse-server.onrender.com/api/users/getFriendList?token=\(token)") else{
             print("invalid url")
             return
         }
@@ -59,13 +59,53 @@ class FriendsViewModel {
         task.resume()
     }
     
+    func fetchFriendsById(id: String){
+        guard let url = URL(string: "https://glimpse-server.onrender.com/api/users/getOrtherFriendList?id=\(id)") else{
+            print("invalid url")
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        let task = URLSession.shared.dataTask(with: request){data, response, error in
+            if let error = error {
+                print(error)
+                return
+            }
+            
+            guard let data = data else {
+                print("no data")
+                return
+            }
+            
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200{
+                print("Server error: Status code \(httpResponse.statusCode)")
+                return
+            }
+            
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let friends = json["friends"] as? [[String: Any]]{
+                    DispatchQueue.main.async {
+                        self.friends = friends
+                        self.onFriendsUpdated?()
+                    }
+                }
+            } catch {
+                print("JSON parsing error: \(error.localizedDescription)")
+            }
+        }
+        task.resume()
+    }
     
-    //MARK: -AddNewFriend
+    
+    //MARK: -Search
     var searchLst: [[String: Any]] = []
     var onSearchLstUpdated: (() -> Void)?
     
     func findUserByKeyword(keyword: String){
-        guard let url = URL(string: "http://localhost:3000/api/users/getUserInfoByUsernameOrEmail?keyword=\(keyword)") else {
+        guard let url = URL(string: "https://glimpse-server.onrender.com/api/users/getUserInfoByUsernameOrEmail?keyword=\(keyword)") else {
             print("invalid url")
             return
         }
@@ -111,7 +151,7 @@ class FriendsViewModel {
             return
         }
         
-        guard let url = URL(string: "http://localhost:3000/api/friend/sendFriendRequest") else {
+        guard let url = URL(string: "https://glimpse-server.onrender.com/api/friend/sendFriendRequest") else {
             print("invalid url")
             return
         }
@@ -154,7 +194,7 @@ class FriendsViewModel {
         task.resume()
     }
     
-    //MARK: -FriendRequest
+    //MARK: -Friend Request
     var friendRequest: [[String: Any]] = []
     var onFriendRequest: (() -> Void)?
     
@@ -165,7 +205,7 @@ class FriendsViewModel {
             return
         }
         
-        guard let url = URL(string: "http://localhost:3000/api/friend/getFriendRequest?token=\(token)") else {
+        guard let url = URL(string: "https://glimpse-server.onrender.com/api/friend/getFriendRequest?token=\(token)") else {
             print("invalid url")
             return
         }
@@ -207,7 +247,7 @@ class FriendsViewModel {
     }
     
     func addToFriendList(id1: String, id2: String){
-        guard let url = URL(string: "http://localhost:3000/api/users/addToFriendList") else {
+        guard let url = URL(string: "https://glimpse-server.onrender.com/api/users/addToFriendList") else {
             print("invalid url")
             return
         }
@@ -253,7 +293,7 @@ class FriendsViewModel {
     }
     
     func removeFriendRequest(requestid: String){
-        guard let url = URL(string: "http://localhost:3000/api/friend/deleteFriendRequest?id=\(requestid)") else{
+        guard let url = URL(string: "https://glimpse-server.onrender.com/api/friend/deleteFriendRequest?id=\(requestid)") else{
             print("invalid url")
             return
         }
@@ -293,7 +333,7 @@ class FriendsViewModel {
             return
         }
         
-        guard let url = URL(string: "http://localhost:3000/api/users/isFriend") else {
+        guard let url = URL(string: "https://glimpse-server.onrender.com/api/users/isFriend") else {
             print("invalid url")
             return
         }
@@ -333,7 +373,7 @@ class FriendsViewModel {
                     completion(false)
                 }
             }
-
+            
             
             
         }
@@ -346,7 +386,7 @@ class FriendsViewModel {
             return
         }
         
-        guard let url = URL(string: "http://localhost:3000/api/friend/isPending") else {
+        guard let url = URL(string: "https://glimpse-server.onrender.com/api/friend/isPending") else {
             print("invalid url")
             return
         }
@@ -397,6 +437,45 @@ class FriendsViewModel {
         
         task.resume()
     }
+    
+    
+    //MARK: -Detail Friend
+    func fetchUserInfoById(id: String,completion: @escaping (User?) -> Void){
+        guard let url = URL(string:  "https://glimpse-server.onrender.com/api/users/getUserInfoById?id=\(id)") else{
+            print("invalid url")
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        let task = URLSession.shared.dataTask(with: request){data, response, error in
+            if let error = error {
+                print(error)
+                return
+            }
+            
+            guard let data = data else {
+                print("data invalid")
+                return
+            }
+            
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
+                print("\(httpResponse.statusCode)")
+            }
+            
+            do {
 
+                let user = try JSONDecoder().decode(User.self, from: data)
+                completion(user)
+            } catch {
+                print("Error parsing JSON: \(error)")
+            }
+
+        }
+        task.resume()
+    }
     
 }
+
+

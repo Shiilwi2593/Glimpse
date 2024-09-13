@@ -360,5 +360,21 @@ extension AccountViewController: UITableViewDelegate, UITableViewDataSource{
         
     }
     
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let friend = self.friendVM.friends[indexPath.row]
+        let id = friend["_id"]
+        let vc = OrtherAccountViewController(id: id as! String)
+        
+        if let sheet = vc.sheetPresentationController {
+            sheet.detents = [.large()]
+            sheet.prefersGrabberVisible = true
+            sheet.prefersScrollingExpandsWhenScrolledToEdge = false
+            sheet.preferredCornerRadius = 30
+        }
+        DispatchQueue.main.async {
+            self.present(vc, animated: true, completion: nil)
+        }
+    }
+    
     
 }
