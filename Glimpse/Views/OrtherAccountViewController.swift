@@ -22,6 +22,7 @@ class OrtherAccountViewController: UIViewController {
     
     var user: User?
     let friendVM = FriendsViewModel()
+    let accountVM = AccountViewModel()
     
     
     //MARK: -UI
@@ -93,21 +94,31 @@ class OrtherAccountViewController: UIViewController {
     private let friendsListVw: UITableView = {
         let friendsListVw = UITableView()
         friendsListVw.translatesAutoresizingMaskIntoConstraints = false
-        friendsListVw.register(UITableViewCell.self, forCellReuseIdentifier: "FriendsListCell")
+        friendsListVw.register(FriendCell.self, forCellReuseIdentifier: "FriendsListCell")
         return friendsListVw
     }()
     
     private let addFriendButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Add Friend", for: .normal)
         button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = UIColor(red: 0.16, green: 0.5, blue: 0.73, alpha: 1.0) // Approximate color based on Glimpse's theme
         button.layer.cornerRadius = 20
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle("Add Friend", for: .normal)
+        button.backgroundColor = UIColor(red: 0.16, green: 0.5, blue: 0.73, alpha: 1.0)
         return button
     }()
     
+    
+    private let noResultLbl: UILabel = {
+        let noResultLbl = UILabel()
+        noResultLbl.translatesAutoresizingMaskIntoConstraints = false
+        noResultLbl.text = "This account has no friends"
+        noResultLbl.isHidden = true
+        noResultLbl.textColor = .gray
+        noResultLbl.font = UIFont.systemFont(ofSize: 13, weight: .regular)
+        return noResultLbl
+    }()
     
     private func createStatView(value: String, label: String) -> UIView {
         let container = UIView()
@@ -155,27 +166,52 @@ class OrtherAccountViewController: UIViewController {
         }
     }
     override func viewWillAppear(_ animated: Bool) {
-        friendVM.fetchUserInfoById(id: self.id){ user in
+        super.viewWillAppear(animated)
+        
+        friendVM.fetchUserInfoById(id: self.id) { user in
             self.user = user
             print(self.user ?? "unknown")
             DispatchQueue.main.async {
-                if let username = self.user?.username{
+                if let username = self.user?.username {
                     self.usernameLbl.text = username
                 }
                 
-                if let email = self.user?.email{
+                if let email = self.user?.email {
                     self.subtitleLbl.text = email
                 }
             }
-            
         }
         
         friendVM.fetchFriendsById(id: self.id)
         friendVM.onFriendsUpdated = {
             self.friendsListVw.reloadData()
+            self.noResultLbl.isHidden = !self.friendVM.friends.isEmpty
             print("reload friend lists")
         }
+        
+        // Setting the friend status and button title
+        friendVM.isFriend(friendId: self.id) { isFriend in
+            DispatchQueue.main.async {
+                if isFriend {
+                    self.addFriendButton.setTitle("Friend", for: .normal)
+                    self.addFriendButton.backgroundColor = UIColor(red: 0.251, green: 0.8, blue: 0.204, alpha: 1.0)
+                } else {
+                    self.friendVM.isPending(receiverId: self.id) { isPending in
+                        DispatchQueue.main.async {
+                            if isPending {
+                                self.addFriendButton.setTitle("Pending", for: .normal)
+                                self.addFriendButton.backgroundColor = UIColor(hex: "c35ac7")
+                            }
+                        }
+                    }
+                }
+                self.setupButton()
+                self.updateAddFriendButton()
+
+            }
+        }
     }
+    
     
     //MARK: -SetUp
     private func setUp(){
@@ -186,6 +222,7 @@ class OrtherAccountViewController: UIViewController {
         view.addSubview(addFriendButton)
         view.addSubview(navBar)
         view.addSubview(friendsListVw)
+        view.addSubview(noResultLbl)
         
         navBar.addSubview(glimpseBtn)
         navBar.addSubview(friendsBtn)
@@ -213,6 +250,8 @@ class OrtherAccountViewController: UIViewController {
         friendsListVw.dataSource = self
         friendsListVw.delegate = self
         
+    
+        
         NSLayoutConstraint.activate([
             avatarImg.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
             avatarImg.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -230,7 +269,7 @@ class OrtherAccountViewController: UIViewController {
             addFriendButton.widthAnchor.constraint(equalToConstant: 180),
             addFriendButton.heightAnchor.constraint(equalToConstant: 40),
             
-            statsStack.topAnchor.constraint(equalTo: addFriendButton.bottomAnchor, constant: 24),
+            statsStack.topAnchor.constraint(equalTo: addFriendButton.bottomAnchor, constant: 22),
             statsStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             statsStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             
@@ -257,7 +296,10 @@ class OrtherAccountViewController: UIViewController {
             friendsListVw.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
             friendsListVw.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
             friendsListVw.topAnchor.constraint(equalTo: selectionIndicator.bottomAnchor, constant: 8),
-            friendsListVw.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10)
+            friendsListVw.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10),
+            
+            noResultLbl.centerXAnchor.constraint(equalTo: friendsListVw.centerXAnchor),
+            noResultLbl.centerYAnchor.constraint(equalTo: friendsListVw.centerYAnchor)
         ])
         
         [glimpseBtn, friendsBtn].forEach { $0.translatesAutoresizingMaskIntoConstraints = false }
@@ -267,13 +309,99 @@ class OrtherAccountViewController: UIViewController {
         friendsBtn.addTarget(self, action: #selector(navButtonTapped), for: .touchUpInside)
         friendsBtn.tag = 1
         
-        //        addFriendButton.addTarget(self, action: #selector(addFriendTapped), for: .touchUpInside)
+        
+        
         
     }
-    @objc private func addFriendTapped() {
-        // Add friend functionality here
-        print("Add friend button tapped")
+    
+    private func updateAddFriendButton() {
+        friendVM.isFriend(friendId: self.id) { isFriend in
+            DispatchQueue.main.async {
+                if isFriend {
+                    self.addFriendButton.setTitle("Friend", for: .normal)
+                    self.addFriendButton.backgroundColor = UIColor(red: 0.251, green: 0.8, blue: 0.204, alpha: 1.0)
+                } else {
+                    self.friendVM.isPending(receiverId: self.id) { isPending in
+                        DispatchQueue.main.async {
+                            if isPending {
+                                self.addFriendButton.setTitle("Pending", for: .normal)
+                                self.addFriendButton.backgroundColor = UIColor(hex: "c35ac7")
+                            } else {
+                                self.addFriendButton.setTitle("Add Friend", for: .normal)
+                                self.addFriendButton.backgroundColor = UIColor(red: 0.16, green: 0.5, blue: 0.73, alpha: 1.0)
+                            }
+                            self.setupButton()
+                        }
+                    }
+                }
+            }
+        }
     }
+    
+    func setupButton() {
+        print(addFriendButton.currentTitle ?? "none title available")
+        addFriendButton.removeTarget(self, action: nil, for: .allEvents)
+
+        if addFriendButton.currentTitle == "Friend" {
+            addFriendButton.addTarget(self, action: #selector(didTapUnfriend), for: .touchUpInside)
+        } else if addFriendButton.currentTitle == "Pending" {
+            addFriendButton.addTarget(self, action: #selector(didTapUnRequest), for: .touchUpInside)
+        } else if addFriendButton.currentTitle == "Add Friend" {
+            addFriendButton.addTarget(self, action: #selector(didTapAddFriend), for: .touchUpInside)
+        }
+    }
+    
+    @objc private func didTapUnfriend() {
+        let alert = UIAlertController(title: "Confirm", message: "Are you sure you want to unfriend this user?", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        alert.addAction(UIAlertAction(title: "Unfriend", style: .destructive, handler: { _ in
+            print("unfriend")
+            self.accountVM.removeFromFriendList(id: self.id) { success in
+                if success {
+                    print("removed")
+                    DispatchQueue.main.async {
+                        self.viewWillAppear(true)
+                    }
+                } else {
+                    print("can't remove")
+                }
+            }
+        }))
+        present(alert, animated: true, completion: nil)
+    }
+
+    @objc private func didTapUnRequest() {
+        let alert = UIAlertController(title: "Confirm", message: "Are you sure you want to cancel the friend request?", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        alert.addAction(UIAlertAction(title: "Cancel Request", style: .destructive, handler: { _ in
+            print("unrequest")
+            self.accountVM.removeRequestOnUsers(id: self.id) { success in
+                if success {
+                    print("Request removed successfully")
+                    DispatchQueue.main.async {
+                        self.viewWillAppear(true) // Tải lại view để cập nhật trạng thái nút
+                    }
+                } else {
+                    print("Failed to remove request")
+                }
+            }
+        }))
+        present(alert, animated: true, completion: nil)
+    }
+
+    @objc private func didTapAddFriend() {
+        let alert = UIAlertController(title: "Confirm", message: "Are you sure you want to send a friend request?", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        alert.addAction(UIAlertAction(title: "Send Request", style: .default, handler: { _ in
+            print("addfriend")
+            self.friendVM.sendFriendRequest(receiverId: self.id)
+            DispatchQueue.main.async {
+                self.viewWillAppear(true)
+            }
+        }))
+        present(alert, animated: true, completion: nil)
+    }
+
     
     @objc private func navButtonTapped(_ sender: UIButton) {
         [glimpseBtn, friendsBtn].forEach { $0.setTitleColor(.gray, for: .normal) }
@@ -352,10 +480,16 @@ extension OrtherAccountViewController: UITableViewDelegate, UITableViewDataSourc
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "FriendsListCell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "FriendsListCell", for: indexPath) as! FriendCell
         let friend = friendVM.friends[indexPath.row]
-        if let username = friend["username"]{
-            cell.textLabel?.text = username as? String
+        if let username = friend["username"] as? String,
+           let email = friend["email"] as? String,
+           let image = friend["image"] as? String {
+            cell.configure(image: image, username: username, email: email)
+            cell.separatorInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
+            
+        } else {
+            print("Missing or invalid data for username, email, or image")
         }
         return cell
     }
@@ -374,8 +508,10 @@ extension OrtherAccountViewController: UITableViewDelegate, UITableViewDataSourc
         DispatchQueue.main.async {
             self.present(vc, animated: true, completion: nil)
         }
-        
-        
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 70
     }
     
 }

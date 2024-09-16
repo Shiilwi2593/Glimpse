@@ -35,8 +35,18 @@ class FriendsViewController: UIViewController {
     private let friendsLstTableVw: UITableView = {
         let friendsLstTableVw = UITableView()
         friendsLstTableVw.translatesAutoresizingMaskIntoConstraints = false
-        friendsLstTableVw.register(UITableViewCell.self, forCellReuseIdentifier: "ListFriendCell")
+        friendsLstTableVw.register(FriendCell.self, forCellReuseIdentifier: "FriendCell")
         return friendsLstTableVw
+    }()
+    
+    private let noResultLbl: UILabel = {
+        let noResultLbl = UILabel()
+        noResultLbl.translatesAutoresizingMaskIntoConstraints = false
+        noResultLbl.text = "This account has no friends"
+        noResultLbl.isHidden = true
+        noResultLbl.textColor = .gray
+        noResultLbl.font = UIFont.systemFont(ofSize: 13, weight: .regular)
+        return noResultLbl
     }()
     
     // MARK: - LifeCycle
@@ -50,20 +60,24 @@ class FriendsViewController: UIViewController {
         viewModel.fetchFriends()
         viewModel.onFriendsUpdated = {
             self.friendsLstTableVw.reloadData()
-            print("reload friend lists")
         }
+        
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         self.tabBarController?.tabBar.isHidden = false
+        viewModel.fetchFriends()
+        friendsLstTableVw.reloadData()
         viewDidLoad()
     }
     
     // MARK: - Setup
     private func setup() {
         view.addSubview(friendListLbl)
-  
+        view.addSubview(noResultLbl)
+        
         let addFrBtn = UIButton(type: .custom)
         addFrBtn.setImage(UIImage(systemName: "person.badge.plus")?.withTintColor(.black, renderingMode: .alwaysOriginal), for: .normal)
         addFrBtn.translatesAutoresizingMaskIntoConstraints = false
@@ -76,6 +90,7 @@ class FriendsViewController: UIViewController {
         
         view.addSubview(addFrBtn)
         view.addSubview(envelopeBtn)
+        
         
         NSLayoutConstraint.activate([
             friendListLbl.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 13),
@@ -90,9 +105,14 @@ class FriendsViewController: UIViewController {
             envelopeBtn.trailingAnchor.constraint(equalTo: addFrBtn.leadingAnchor, constant: 0),
             envelopeBtn.centerYAnchor.constraint(equalTo: friendListLbl.centerYAnchor),
             envelopeBtn.heightAnchor.constraint(equalToConstant: 44),
-            envelopeBtn.widthAnchor.constraint(equalToConstant: 44)
+            envelopeBtn.widthAnchor.constraint(equalToConstant: 44),
+            
+            noResultLbl.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            noResultLbl.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
     }
+    
+    
     
     private func setupFriendListVw() {
         view.addSubview(friendsLstTableVw)
@@ -107,7 +127,7 @@ class FriendsViewController: UIViewController {
             friendsLstTableVw.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -13)
         ])
     }
-
+    
     
     @objc private func didTapEnvelopeBtn() {
         let friendRequestViewController = FriendRequestsViewController()
@@ -131,10 +151,18 @@ extension FriendsViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ListFriendCell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "FriendCell", for: indexPath) as! FriendCell
         let friends = viewModel.friends[indexPath.row]
-        let username = friends["username"] ?? "unknown"
-        cell.textLabel?.text = "\(username)"
+        if let username = friends["username"] as? String,
+           let email = friends["email"] as? String,
+           let image = friends["image"] as? String {
+            cell.configure(image: image, username: username, email: email)
+            cell.separatorInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
+            
+        } else {
+            print("Missing or invalid data for username, email, or image")
+        }
+        
         return cell
     }
     
@@ -149,6 +177,10 @@ extension FriendsViewController: UITableViewDelegate, UITableViewDataSource {
             sheet.preferredCornerRadius = 30
         }
         present(vc, animated: true)
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 70
     }
     
     @objc private func didTapAddFriend(_ sender: UIButton) {

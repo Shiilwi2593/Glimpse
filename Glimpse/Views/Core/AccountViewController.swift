@@ -83,20 +83,9 @@ class AccountViewController: UIViewController {
     private let friendsListVw: UITableView = {
         let friendsListVw = UITableView()
         friendsListVw.translatesAutoresizingMaskIntoConstraints = false
-        friendsListVw.register(UITableViewCell.self, forCellReuseIdentifier: "FriendsListCell")
+        friendsListVw.register(FriendCell.self, forCellReuseIdentifier: "FriendsList")
         return friendsListVw
     }()
-    
-    //    private let addFriendButton: UIButton = {
-    //        let button = UIButton(type: .system)
-    //        button.setTitle("Add Friend", for: .normal)
-    //        button.setTitleColor(.white, for: .normal)
-    //        button.backgroundColor = UIColor(red: 0.16, green: 0.5, blue: 0.73, alpha: 1.0) // Approximate color based on Glimpse's theme
-    //        button.layer.cornerRadius = 20
-    //        button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-    //        button.translatesAutoresizingMaskIntoConstraints = false
-    //        return button
-    //    }()
     
     
     private func createStatView(value: String, label: String) -> UIView {
@@ -133,7 +122,7 @@ class AccountViewController: UIViewController {
     
     //MARK: -LifeCycle
     override func viewDidLoad() {
-        //        super.viewDidLoad()
+        super.viewDidLoad()
         view.backgroundColor = .white
         title = "Profile"
         setUpNavigationBar()
@@ -150,8 +139,7 @@ class AccountViewController: UIViewController {
             self.friendsListVw.reloadData()
             print("reload friend lists")
         }
-        
-        
+                
     }
     override func viewWillAppear(_ animated: Bool) {
         mapVM.getUserInfoByToken { user in
@@ -182,7 +170,6 @@ class AccountViewController: UIViewController {
         view.addSubview(usernameLbl)
         view.addSubview(subtitleLbl)
         view.addSubview(statsStack)
-        //        view.addSubview(addFriendButton)
         view.addSubview(navBar)
         view.addSubview(friendsListVw)
         
@@ -224,12 +211,7 @@ class AccountViewController: UIViewController {
             subtitleLbl.topAnchor.constraint(equalTo: usernameLbl.bottomAnchor, constant: 8),
             subtitleLbl.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            //            addFriendButton.topAnchor.constraint(equalTo: subtitleLbl.bottomAnchor, constant: 16),
-            //            addFriendButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            //            addFriendButton.widthAnchor.constraint(equalToConstant: 180),
-            //            addFriendButton.heightAnchor.constraint(equalToConstant: 40),
-            //
-            statsStack.topAnchor.constraint(equalTo: subtitleLbl.bottomAnchor, constant: 24),
+            statsStack.topAnchor.constraint(equalTo: subtitleLbl.bottomAnchor, constant: 22),
             statsStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             statsStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             
@@ -269,11 +251,7 @@ class AccountViewController: UIViewController {
         //        addFriendButton.addTarget(self, action: #selector(addFriendTapped), for: .touchUpInside)
         
     }
-    @objc private func addFriendTapped() {
-        // Add friend functionality here
-        print("Add friend button tapped")
-    }
-    
+
     @objc private func navButtonTapped(_ sender: UIButton) {
         [glimpseBtn, friendsBtn].forEach { $0.setTitleColor(.gray, for: .normal) }
         sender.setTitleColor(.black, for: .normal)
@@ -351,10 +329,16 @@ extension AccountViewController: UITableViewDelegate, UITableViewDataSource{
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "FriendsListCell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "FriendsList", for: indexPath) as! FriendCell
         let friend = friendVM.friends[indexPath.row]
-        if let username = friend["username"]{
-            cell.textLabel?.text = username as? String
+        if let username = friend["username"] as? String,
+           let email = friend["email"] as? String,
+           let image = friend["image"] as? String {
+            cell.configure(image: image, username: username, email: email)
+            cell.separatorInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
+
+        } else {
+            print("Missing or invalid data for username, email, or image")
         }
         return cell
         
@@ -376,5 +360,8 @@ extension AccountViewController: UITableViewDelegate, UITableViewDataSource{
         }
     }
     
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 70
+    }
     
 }

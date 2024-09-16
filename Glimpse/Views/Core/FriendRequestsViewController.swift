@@ -10,6 +10,8 @@ import UIKit
 class FriendRequestsViewController: UIViewController {
     
     private var viewmodel = FriendsViewModel()
+    var onFriendRequestAccepted: (() -> Void)?
+
     
     //MARK: - UI
     private let frRequestTableVw: UITableView = {
@@ -55,18 +57,16 @@ extension FriendRequestsViewController: UITableViewDelegate, UITableViewDataSour
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: "FriendRequestCell", for: indexPath) as? FriendRequestCell else {
-            return UITableViewCell()
-        }
+        let cell = tableView.dequeueReusableCell(withIdentifier: "FriendRequestCell", for: indexPath) as! FriendRequestCell
         
         let friendRequest = viewmodel.friendRequest[indexPath.row]
         if let friend = friendRequest["senderId"] as? [String: Any],
-           let username = friend["username"] as? String {
-            cell.usernameLabel.text = username
-        } else {
-            cell.usernameLabel.text = "Unknown"
+           let _ = friend["_id"] as? String,
+           let username = friend["username"] as? String,
+           let image = friend["image"] as? String,
+           let email = friend["email"] as? String{
+            cell.configure(image: image, username: username, email: email)
         }
-        
         cell.acceptButton.tag = indexPath.row
         cell.acceptButton.addTarget(self, action: #selector(didTapAccept), for: .touchUpInside)
         
@@ -76,6 +76,12 @@ extension FriendRequestsViewController: UITableViewDelegate, UITableViewDataSour
         return cell
     }
     
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 70
+    }
+    
+
+
     @objc private func didTapAccept(_ sender: UIButton) {
         let index = sender.tag
         let data = viewmodel.friendRequest[index]
@@ -84,13 +90,27 @@ extension FriendRequestsViewController: UITableViewDelegate, UITableViewDataSour
             let receiverId = receiver["_id"] as! String
             viewmodel.addToFriendList(id1: senderId, id2: receiverId)
             viewmodel.removeFriendRequest(requestid: data["_id"] as! String)
+            
+            // Cập nhật bảng ngay lập tức
+            viewmodel.fetchFriendRequest()
+            frRequestTableVw.reloadData()
+            
+            // Thông báo cho FriendsViewController và đóng sheet
+            onFriendRequestAccepted?()
+            dismiss(animated: true, completion: nil)
+            let vc = FriendsViewController()
+            navigationController?.pushViewController(vc, animated: true)
+            navigationController?.navigationItem.hidesBackButton = true
         }
     }
-    
+
     @objc private func didTapReject(_ sender: UIButton) {
         let index = sender.tag
         let data = viewmodel.friendRequest[index]
         viewmodel.removeFriendRequest(requestid: data["_id"] as! String)
         
+        // Cập nhật bảng ngay lập tức
+        viewmodel.fetchFriendRequest() // Đảm bảo rằng bạn cập nhật danh sách yêu cầu bạn bè
+        frRequestTableVw.reloadData()
     }
 }

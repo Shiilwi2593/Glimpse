@@ -311,7 +311,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
     }
 
     private func shouldAnimate(annotationView: MKAnnotationView?) -> Bool {
-        // Determine when to animate. Example: animate only the first time an annotation appears.
         return true // Or use a condition to limit when animation happens
     }
     

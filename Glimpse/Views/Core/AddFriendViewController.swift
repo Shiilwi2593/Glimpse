@@ -40,7 +40,27 @@ class AddFriendViewController: UIViewController {
         let searchLstTableVw = UITableView()
         searchLstTableVw.translatesAutoresizingMaskIntoConstraints = false
         searchLstTableVw.register(SearchListCell.self, forCellReuseIdentifier: "SearchLstCell")
+        searchLstTableVw.separatorInset = .zero
+        searchLstTableVw.layoutMargins = .zero
         return searchLstTableVw
+    }()
+    
+    
+    private let activityIndicator: UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: .medium)
+        indicator.hidesWhenStopped = true
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        return indicator
+    }()
+    
+    private let noResultLbl: UILabel = {
+        let noResultLbl = UILabel()
+        noResultLbl.translatesAutoresizingMaskIntoConstraints = false
+        noResultLbl.text = "No results found"
+        noResultLbl.isHidden = true
+        noResultLbl.textColor = .gray
+        noResultLbl.font = UIFont.systemFont(ofSize: 13, weight: .regular)
+        return noResultLbl
     }()
     
     
@@ -59,6 +79,9 @@ class AddFriendViewController: UIViewController {
         view.addSubview(searchInput)
         view.addSubview(searchBtn)
         view.addSubview(searchLstTableVw)
+        view.addSubview(activityIndicator)
+        view.addSubview(noResultLbl)
+        
         
         searchLstTableVw.delegate = self
         searchLstTableVw.dataSource = self
@@ -71,26 +94,69 @@ class AddFriendViewController: UIViewController {
             searchInput.widthAnchor.constraint(equalToConstant: 320),
             searchInput.heightAnchor.constraint(equalToConstant: 44),
             
-            searchBtn.leadingAnchor.constraint(equalTo: searchInput.trailingAnchor, constant: 0),
+            searchBtn.leadingAnchor.constraint(equalTo: searchInput.trailingAnchor, constant: -5),
             searchBtn.centerYAnchor.constraint(equalTo: searchInput.centerYAnchor),
             searchBtn.widthAnchor.constraint(equalToConstant: 50),
             searchBtn.heightAnchor.constraint(equalToConstant: 50),
             
-            searchLstTableVw.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            searchLstTableVw.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            searchLstTableVw.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
+            searchLstTableVw.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
             searchLstTableVw.topAnchor.constraint(equalTo: searchInput.bottomAnchor,constant: 15),
-            searchLstTableVw.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -15)
+            searchLstTableVw.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -15),
+            
+            activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            
+            noResultLbl.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            noResultLbl.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
     }
     
     //MARK: -Action Function
-    @objc private func didTapSearchBtn(){
+    @objc private func didTapSearchBtn() {
         let keyword = searchInput.text ?? ""
-        frVM.findUserByKeyword(keyword: keyword)
-        frVM.onSearchLstUpdated = {
+        
+        // Bắt đầu hiệu ứng loading
+        activityIndicator.startAnimating()
+        
+        // Xóa dữ liệu cũ và ẩn TableView
+        frVM.searchLst.removeAll() // Xóa dữ liệu cũ
+        searchLstTableVw.reloadData()
+        searchLstTableVw.isHidden = true
+        noResultLbl.isHidden = true // Ẩn nhãn "No results found" ngay từ đầu
+        
+        // Bắt đầu tìm kiếm ngay lập tức
+        self.frVM.findUserByKeyword(keyword: keyword)
+        
+        // Đặt thời gian tối đa là 2 giây để dừng loading nếu không có kết quả
+        let loadingTimeout: TimeInterval = 2.0
+        let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.main)
+        timer.schedule(deadline: .now() + loadingTimeout)
+        timer.setEventHandler {
             DispatchQueue.main.async {
-                UIView.performWithoutAnimation {
-                    self.searchLstTableVw.reloadData()
+                if self.frVM.searchLst.isEmpty {
+                    self.activityIndicator.stopAnimating()
+                    self.noResultLbl.isHidden = false
+                }
+                timer.cancel() // Hủy timer sau khi kiểm tra
+            }
+        }
+        timer.resume()
+        
+        // Khi danh sách kết quả cập nhật
+        self.frVM.onSearchLstUpdated = {
+            DispatchQueue.main.async {
+                self.activityIndicator.stopAnimating()
+                
+                if self.frVM.searchLst.isEmpty {
+                    self.noResultLbl.isHidden = false
+                } else {
+                    // Có kết quả, hiện TableView và ẩn nhãn "No results found"
+                    self.noResultLbl.isHidden = true
+                    self.searchLstTableVw.isHidden = false
+                    UIView.performWithoutAnimation {
+                        self.searchLstTableVw.reloadData()
+                    }
                 }
             }
         }
@@ -101,76 +167,56 @@ extension AddFriendViewController: UITableViewDataSource, UITableViewDelegate{
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return frVM.searchLst.count
     }
-    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "SearchLstCell", for: indexPath) as! SearchListCell
         let searchLst = frVM.searchLst[indexPath.row]
         
-        if let _ = UserDefaults.standard.string(forKey: "authToken") {
-            mapVM.getUserInfoByToken { currentUser in
-                DispatchQueue.main.async {
-                    if let currentUser = currentUser, let friendId = searchLst["_id"] as? String {
-                        if currentUser._id == friendId {
-                            cell.addFriendButton.isHidden = true
-                        } else {
-                            self.frVM.isFriend(friendId: friendId) { isFriend in
-                                DispatchQueue.main.async {
-                                    if isFriend {
-                                        cell.addFriendButton.isHidden = true
-                                    } else {
-                                        // Kiểm tra nếu đang pending
-                                        self.frVM.isPending(receiverId: friendId) { isPending in
-                                            DispatchQueue.main.async {
-                                                if isPending {
-                                                    cell.addFriendButton.setTitle("Pending", for: .normal)
-                                                    cell.addFriendButton.backgroundColor = .systemGray5
-                                                    cell.addFriendButton.isEnabled = false
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        if let username = searchLst["username"] as? String,
+           let email = searchLst["email"] as? String,
+           let image = searchLst["image"] as? String {
+            cell.configure(image: image, username: username, email: email)
+            cell.separatorInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
+        } else {
+            print("Missing or invalid data for username, email, or image")
         }
         
-        let username = searchLst["username"] ?? "unknown"
-        cell.friendNameLabel.text = "\(username)"
-        cell.addFriendButton.tag = indexPath.row
-        cell.addFriendButton.addTarget(self, action: #selector(didTapAddFriendBtn), for: .touchUpInside)
+        
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let searchLst = self.frVM.searchLst[indexPath.row]
         let id = searchLst["_id"]
-        let vc = OrtherAccountViewController(id: id as! String)
         
-        if let sheet = vc.sheetPresentationController {
-            sheet.detents = [.large()]
-            sheet.prefersGrabberVisible = true
-            sheet.prefersScrollingExpandsWhenScrolledToEdge = false
-            sheet.preferredCornerRadius = 30
+        frVM.isMe(id: id as! String) { isMe in
+            DispatchQueue.main.async {
+                var vc: UIViewController
+                if isMe {
+                    print("Navigating to AccountViewController")  // Debug xem điều hướng đúng chưa
+                    vc = AccountViewController()
+                } else {
+                    print("Navigating to OrtherAccountViewController")
+                    vc = OrtherAccountViewController(id: id as! String)
+                }
+
+                if let sheet = vc.sheetPresentationController {
+                    sheet.detents = [.large()]
+                    sheet.prefersGrabberVisible = true
+                    sheet.prefersScrollingExpandsWhenScrolledToEdge = false
+                    sheet.preferredCornerRadius = 30
+                }
+                
+                self.present(vc, animated: true, completion: nil)
+            }
         }
-        DispatchQueue.main.async {
-            self.present(vc, animated: true, completion: nil)
-        }
-        
+    }
+
+
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 70
     }
     
     
-    
-    
-    @objc private func didTapAddFriendBtn(_ sender: UIButton){
-        let index = sender.tag
-        let receiver = frVM.searchLst[index]
-        let receiverId = receiver["_id"] as! String
-        frVM.sendFriendRequest(receiverId: receiverId)
-        print("add button tapped")
-    }
-    
-    
+
 }

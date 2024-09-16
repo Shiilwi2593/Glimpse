@@ -465,14 +465,65 @@ class FriendsViewModel {
             }
             
             do {
-
+                
                 let user = try JSONDecoder().decode(User.self, from: data)
                 completion(user)
             } catch {
                 print("Error parsing JSON: \(error)")
             }
-
+            
         }
+        task.resume()
+    }
+    
+    func isMe(id: String, completion: @escaping (Bool) -> Void){
+        guard let token = UserDefaults.standard.string(forKey: "authToken") else{
+            print("invalid token")
+            return
+        }
+        
+        guard let url = URL(string: "https://glimpse-server.onrender.com/api/users/isMe/") else {
+            print("invalid url")
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: Any] = [
+            "token": token,
+            "id": id
+        ]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Request error: \(error.localizedDescription)")
+                completion(false)
+                return
+            }
+            
+            guard let data = data else {
+                print("Invalid data")
+                completion(false)
+                return
+            }
+            
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let success = json["success"] as? Bool {  // Kiểm tra nếu JSON có key "success"
+                    completion(success)
+                } else {
+                    print("Failed to find 'success' key in JSON")
+                    completion(false)
+                }
+            } catch {
+                print("Failed to parse JSON: \(error.localizedDescription)")
+                completion(false)
+            }
+        }
+        
         task.resume()
     }
     
