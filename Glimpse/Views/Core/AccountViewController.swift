@@ -6,12 +6,14 @@
 //
 
 import UIKit
+import Cloudinary
 
-class AccountViewController: UIViewController {
+class AccountViewController: UIViewController, UINavigationControllerDelegate {
     
     var user: User?
     let mapVM = MapViewModel()
     let friendVM = FriendsViewModel()
+    let accountVM = AccountViewModel()
     
     
     //MARK: -UI
@@ -87,6 +89,18 @@ class AccountViewController: UIViewController {
         return friendsListVw
     }()
     
+    private var editAvatarBtn: UIButton = {
+        let button = UIButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        let image = UIImage(systemName: "pencil.line")?.withTintColor(.black, renderingMode: .alwaysOriginal)
+        button.setImage(image, for: .normal)
+        button.layer.borderWidth = 1
+        button.contentMode = .scaleAspectFill
+        button.backgroundColor = .systemGray6
+        button.layer.masksToBounds = true
+        return button
+    }()
+    
     
     private func createStatView(value: String, label: String) -> UIView {
         let container = UIView()
@@ -128,8 +142,11 @@ class AccountViewController: UIViewController {
         setUpNavigationBar()
         mapVM.getUserInfoByToken { user in
             self.user = user
-            print(self.user ?? "unknown")
             DispatchQueue.main.async {
+                if let avatarUrlString = self.user?.image,
+                   let avatarUrl = URL(string: avatarUrlString) {
+                    self.avatarImg.downloaded(from: avatarUrl)
+                }
                 self.setUp()
             }
         }
@@ -139,22 +156,24 @@ class AccountViewController: UIViewController {
             self.friendsListVw.reloadData()
             print("reload friend lists")
         }
-                
     }
+    
     override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         mapVM.getUserInfoByToken { user in
             self.user = user
-            print(self.user ?? "unknown")
             DispatchQueue.main.async {
-                if let username = self.user?.username{
+                if let username = self.user?.username {
                     self.usernameLbl.text = username
                 }
-                
-                if let email = self.user?.email{
+                if let email = self.user?.email {
                     self.subtitleLbl.text = email
                 }
+                if let avatarUrlString = self.user?.image,
+                   let avatarUrl = URL(string: avatarUrlString) {
+                    self.avatarImg.downloaded(from: avatarUrl)
+                }
             }
-            
         }
         
         friendVM.fetchFriends()
@@ -162,6 +181,12 @@ class AccountViewController: UIViewController {
             self.friendsListVw.reloadData()
             print("reload friend lists")
         }
+    }
+    
+    override func viewDidLayoutSubviews() {
+        editAvatarBtn.layer.cornerRadius = editAvatarBtn.frame.height / 2
+        editAvatarBtn.clipsToBounds = true
+        
     }
     
     //MARK: -SetUp
@@ -172,13 +197,14 @@ class AccountViewController: UIViewController {
         view.addSubview(statsStack)
         view.addSubview(navBar)
         view.addSubview(friendsListVw)
+        view.addSubview(editAvatarBtn)
         
         navBar.addSubview(glimpseBtn)
         navBar.addSubview(friendsBtn)
         navBar.addSubview(selectionIndicator)
         
         
-        self.avatarImg.image = UIImage(named: "winter")
+        self.avatarImg.downloaded(from: "https://i.ibb.co/jggwqDf/defaultavatar.jpg")
         
         
         if let username = self.user?.username{
@@ -204,6 +230,11 @@ class AccountViewController: UIViewController {
             avatarImg.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             avatarImg.widthAnchor.constraint(equalToConstant: 100),
             avatarImg.heightAnchor.constraint(equalToConstant: 100),
+            
+            editAvatarBtn.centerXAnchor.constraint(equalTo: view.centerXAnchor, constant: 32),
+            editAvatarBtn.topAnchor.constraint(equalTo: avatarImg.bottomAnchor, constant: -22),
+            editAvatarBtn.heightAnchor.constraint(equalToConstant: 35),
+            editAvatarBtn.widthAnchor.constraint(equalToConstant: 35),
             
             usernameLbl.topAnchor.constraint(equalTo: avatarImg.bottomAnchor, constant: 16),
             usernameLbl.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -248,10 +279,20 @@ class AccountViewController: UIViewController {
         friendsBtn.addTarget(self, action: #selector(navButtonTapped), for: .touchUpInside)
         friendsBtn.tag = 1
         
+        editAvatarBtn.addTarget(self, action: #selector(editAvatarTapped), for: .touchUpInside)
+        
         //        addFriendButton.addTarget(self, action: #selector(addFriendTapped), for: .touchUpInside)
         
     }
-
+    
+    @objc private func editAvatarTapped() {
+        let imagePickerController = UIImagePickerController()
+        imagePickerController.delegate = self
+        imagePickerController.sourceType = .photoLibrary // Open gallery
+        imagePickerController.allowsEditing = true // Optional: allows editing of the image
+        present(imagePickerController, animated: true, completion: nil)
+    }
+    
     @objc private func navButtonTapped(_ sender: UIButton) {
         [glimpseBtn, friendsBtn].forEach { $0.setTitleColor(.gray, for: .normal) }
         sender.setTitleColor(.black, for: .normal)
@@ -318,12 +359,12 @@ class AccountViewController: UIViewController {
             logoutSuccessAlert.dismiss(animated: true)
         }
     }
-
+    
     
 }
 
 
-extension AccountViewController: UITableViewDelegate, UITableViewDataSource{
+extension AccountViewController: UITableViewDelegate, UITableViewDataSource, UIImagePickerControllerDelegate{
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return friendVM.friends.count
     }
@@ -336,7 +377,7 @@ extension AccountViewController: UITableViewDelegate, UITableViewDataSource{
            let image = friend["image"] as? String {
             cell.configure(image: image, username: username, email: email)
             cell.separatorInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
-
+            
         } else {
             print("Missing or invalid data for username, email, or image")
         }
@@ -364,4 +405,53 @@ extension AccountViewController: UITableViewDelegate, UITableViewDataSource{
         return 70
     }
     
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+        if let selectedImage = info[.originalImage] as? UIImage {
+            uploadImage(image: selectedImage) { url in
+                if let urlString = url {
+                    self.accountVM.updateImage(url: urlString)
+                    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now(), execute: {
+                        picker.dismiss(animated: true, completion: nil)
+                        self.viewWillAppear(true)
+                    })
+
+                }
+            }
+        }
+ 
+    }
+
+
+    
+    func uploadImage(image: UIImage, completion: @escaping (String?) -> Void) {
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            completion(nil)
+            return
+        }
+        let cloudinary = CLDCloudinary(configuration: CLDConfiguration(cloudName: "dkea6b2lm", apiKey: "915397132791353", apiSecret: "IAE2SY2hl3UnmMMj28SdOkY8Ces"))
+
+        cloudinary.createUploader().upload(data: imageData, uploadPreset: "ml_default", progress: { (progress) in
+            print("Upload progress: \(progress.fractionCompleted)")
+        }, completionHandler: { (result, error) in
+            if let error = error {
+                print("Error uploading image: \(error.localizedDescription)")
+                completion(nil)
+                return
+            }
+
+            guard let result = result, let url = result.secureUrl as String? else {
+                completion(nil)
+                return
+            }
+            print(url)
+
+            completion(url)
+        })
+    }
+    
+
+    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true, completion: nil)
+    }
 }

@@ -16,6 +16,8 @@
 		2B1534852C7B33870071C228 /* LoginViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1534842C7B33870071C228 /* LoginViewModel.swift */; };
 		2B1534872C7B414F0071C228 /* MapViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1534862C7B414F0071C228 /* MapViewModel.swift */; };
 		2B159E812C7DBF6C00E3F0CF /* OTPSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B159E802C7DBF6C00E3F0CF /* OTPSheetViewController.swift */; };
+		2B224A362C995B69002AD6DB /* Cloudinary in Frameworks */ = {isa = PBXBuildFile; productRef = 2B224A352C995B69002AD6DB /* Cloudinary */; };
+		2B224A382C995B8E002AD6DB /* uploadImgCloud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B224A372C995B8E002AD6DB /* uploadImgCloud.swift */; };
 		2B43AA562C957B9E003287E6 /* FriendCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B43AA552C957B9E003287E6 /* FriendCell.swift */; };
 		2B4E01EE2C86D0E700EEDBDF /* TestViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4E01ED2C86D0E700EEDBDF /* TestViewController.swift */; };
 		2B4E01F02C87331200EEDBDF /* Test2ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4E01EF2C87331200EEDBDF /* Test2ViewController.swift */; };
@@ -48,6 +50,7 @@
 		2B1534842C7B33870071C228 /* LoginViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewModel.swift; sourceTree = "<group>"; };
 		2B1534862C7B414F0071C228 /* MapViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapViewModel.swift; sourceTree = "<group>"; };
 		2B159E802C7DBF6C00E3F0CF /* OTPSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTPSheetViewController.swift; sourceTree = "<group>"; };
+		2B224A372C995B8E002AD6DB /* uploadImgCloud.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = uploadImgCloud.swift; sourceTree = "<group>"; };
 		2B43AA552C957B9E003287E6 /* FriendCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendCell.swift; sourceTree = "<group>"; };
 		2B4E01ED2C86D0E700EEDBDF /* TestViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestViewController.swift; sourceTree = "<group>"; };
 		2B4E01EF2C87331200EEDBDF /* Test2ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Test2ViewController.swift; sourceTree = "<group>"; };
@@ -77,6 +80,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B224A362C995B69002AD6DB /* Cloudinary in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -180,6 +184,7 @@
 				2BE0E8822C6382A000D48CEF /* transferToHexColor.swift */,
 				2B0DAE162C7F2852009F6FD3 /* alertFont.swift */,
 				2BF0D2A02C81BF6500D5F0E0 /* ImageUrlFunc.swift */,
+				2B224A372C995B8E002AD6DB /* uploadImgCloud.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -200,6 +205,9 @@
 			dependencies = (
 			);
 			name = Glimpse;
+			packageProductDependencies = (
+				2B224A352C995B69002AD6DB /* Cloudinary */,
+			);
 			productName = Yapping;
 			productReference = 2BE0E8642C636D8C00D48CEF /* Glimpse.app */;
 			productType = "com.apple.product-type.application";
@@ -228,6 +236,9 @@
 				Base,
 			);
 			mainGroup = 2BE0E85B2C636D8C00D48CEF;
+			packageReferences = (
+				2B224A342C995B69002AD6DB /* XCRemoteSwiftPackageReference "cloudinary_ios" */,
+			);
 			productRefGroup = 2BE0E8652C636D8C00D48CEF /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -255,6 +266,7 @@
 			files = (
 				2B0DAE172C7F2852009F6FD3 /* alertFont.swift in Sources */,
 				2B4E01EE2C86D0E700EEDBDF /* TestViewController.swift in Sources */,
+				2B224A382C995B8E002AD6DB /* uploadImgCloud.swift in Sources */,
 				2BEE452D2C8C4AB800712329 /* FriendsViewModel.swift in Sources */,
 				2B15347E2C7B13B40071C228 /* MapViewController.swift in Sources */,
 				2BD5973A2C6A54B000E56CBB /* SignUpViewController.swift in Sources */,
@@ -484,6 +496,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		2B224A342C995B69002AD6DB /* XCRemoteSwiftPackageReference "cloudinary_ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/cloudinary/cloudinary_ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		2B224A352C995B69002AD6DB /* Cloudinary */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2B224A342C995B69002AD6DB /* XCRemoteSwiftPackageReference "cloudinary_ios" */;
+			productName = Cloudinary;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 2BE0E85C2C636D8C00D48CEF /* Project object */;
 }

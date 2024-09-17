@@ -181,4 +181,47 @@ class AccountViewModel{
         }
         task.resume()
     }
+    
+    func updateImage(url: String) {
+        guard let token = UserDefaults.standard.string(forKey: "authToken") else{
+            print("invalid token")
+            return
+        }
+
+        guard let requestUrl = URL(string: "http://localhost:3000/api/users/updateImage") else {
+            print("invalid url")
+            return
+        }
+
+        var request = URLRequest(url: requestUrl)
+        request.httpMethod = "PUT"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body: [String: Any] = [
+            "token": token,
+            "imageUrl": url // Make sure `url` is a String
+        ]
+
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print(error)
+                return
+            }
+
+            guard let data = data else {
+                print("invalid data")
+                return
+            }
+
+            if let json = try? JSONSerialization.jsonObject(with: data) {
+                print(json)
+                return
+            }
+        }
+        task.resume() // Make sure to start the task
+    }
+
+
 }
