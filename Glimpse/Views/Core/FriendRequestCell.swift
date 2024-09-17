@@ -103,8 +103,9 @@ class FriendRequestCell: UITableViewCell {
         DispatchQueue.main.async {
             self.usernameLbl.text = username
             self.emailLbl.text = email
-            self.profileImgView.downloaded(from: "https://t4.ftcdn.net/jpg/05/49/98/39/360_F_549983970_bRCkYfk0P6PP5fKbMhZMIb07mCJ6esXL.jpg", contentMode: .scaleToFill)
-            
+            self.profileImgView.downloaded(from: image, contentMode: .scaleToFill)
+            self.profileImgView.layer.cornerRadius = self.profileImgView.frame.height / 2
+            self.profileImgView.clipsToBounds = true
         }
     }
 }

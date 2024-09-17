@@ -164,6 +164,8 @@ class OrtherAccountViewController: UIViewController {
                 self.setUp()
             }
         }
+        self.viewWillAppear(true)
+
     }
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -179,6 +181,21 @@ class OrtherAccountViewController: UIViewController {
                 if let email = self.user?.email {
                     self.subtitleLbl.text = email
                 }
+                
+                if let image = self.user?.image{
+                    self.avatarImg.downloaded(from: (self.user?.image)!)
+                    self.avatarImg.contentMode = .scaleAspectFill
+                }
+                // Xóa các subviews trong statsStack
+                self.statsStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
+                
+                // Tạo lại các stat views với dữ liệu mới
+                let glimpse = self.createStatView(value: "\(self.user?.friends?.count ?? 0)", label: "Friends")
+                let friends = self.createStatView(value: "78", label: "Glimpse")
+                let likes = self.createStatView(value: "99", label: "Likes")
+                
+                // Thêm stat views vào statsStack
+                [friends, glimpse, likes].forEach { self.statsStack.addArrangedSubview($0) }
             }
         }
         
@@ -229,7 +246,7 @@ class OrtherAccountViewController: UIViewController {
         navBar.addSubview(selectionIndicator)
         
         
-        self.avatarImg.image = UIImage(named: "winter")
+        self.avatarImg.downloaded(from: (self.user?.image)!)
         
         
         if let username = self.user?.username{
@@ -240,11 +257,11 @@ class OrtherAccountViewController: UIViewController {
             subtitleLbl.text = email
         }
         
-        let glimpse = createStatView(value: "\(self.user?.friends?.count ?? 0)", label: "Friends")
-        let friends = createStatView(value: "78", label: "Glimpse")
-        let likes = createStatView(value: "99", label: "Likes")
-        
-        [friends, glimpse, likes].forEach { statsStack.addArrangedSubview($0) }
+//        let glimpse = createStatView(value: "\(self.user?.friends?.count ?? 0)", label: "Friends")
+//        let friends = createStatView(value: "78", label: "Glimpse")
+//        let likes = createStatView(value: "99", label: "Likes")
+//        
+//        [friends, glimpse, likes].forEach { statsStack.addArrangedSubview($0) }
         
         friendsListVw.isHidden = true
         friendsListVw.dataSource = self

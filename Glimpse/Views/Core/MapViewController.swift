@@ -13,7 +13,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
     private var updateTimer: Timer?
     private var isInitialLocationSet = false
     
-    private var userImage: UIImage?
+    private var userImage: String?
     private var userName: String?
     
     private var userAnnotation: MKPointAnnotation?
@@ -27,13 +27,17 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         setupLocationManager()
         setupNotificationObserver()
         
-        Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+        Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
             self?.fetchAndUpdateFriendsLocations()
         }
     }
     
     deinit {
         NotificationCenter.default.removeObserver(self, name: .didLogout, object: nil)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        fetchAndUpdateFriendsLocations()
     }
     
     
@@ -53,7 +57,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         
         if CLLocationManager.locationServicesEnabled() {
             locationManager.startUpdatingLocation()
-            updateTimer = Timer.scheduledTimer(timeInterval: 2.0, target: self, selector: #selector(updateLocationPeriodically), userInfo: nil, repeats: true)
+            updateTimer = Timer.scheduledTimer(timeInterval: 5.0, target: self, selector: #selector(updateLocationPeriodically), userInfo: nil, repeats: true)
         } else {
             print("Location services are not enabled")
         }
@@ -70,9 +74,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
                 if let user = user {
                     self?.userName = user.username
                     print("Fetched username: \(self?.userName ?? "No username")")
-                    if let urlString = user.image, let url = URL(string: urlString) {
-                        self?.downloadImage(from: url)
-                    }
+                    self?.userImage = user.image
                     // Update the user annotation after fetching user info
                     self?.updateUserAnnotation()
                 } else {
@@ -95,18 +97,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         mapView.addAnnotation(userAnnotation!)
     }
     
-    private func downloadImage(from url: URL) {
-        URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
-            guard let data = data, error == nil else { return }
-            DispatchQueue.main.async {
-                self?.userImage = UIImage(data: data)
-                if let location = self?.locationManager.location {
-                    self?.updateMapLocation(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)
-                }
-            }
-        }.resume()
-    }
-    
+
     // MARK: - Location Management
     private func updateUserLocation(latitude: Double, longitude: Double) {
         guard let token = UserDefaults.standard.string(forKey: "authToken") else {
@@ -175,21 +166,19 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         for friend in friends {
             if let latitude = friend["latitude"] as? Double,
                let longitude = friend["longitude"] as? Double,
-               let username = friend["username"] as? String {
+               let username = friend["username"] as? String,
+               let imageUrl = friend["image"] as? String {  // Lấy URL của ảnh bạn bè
                 let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
                 
-                // Check if this friend's location is not the same as the user's location
                 if userAnnotation?.coordinate.latitude != latitude || userAnnotation?.coordinate.longitude != longitude {
                     let annotation = MKPointAnnotation()
                     annotation.coordinate = coordinate
                     annotation.title = username
+                    annotation.subtitle = imageUrl  // Lưu URL ảnh vào subtitle để truy cập sau
                     friendAnnotations.append(annotation)
                 }
             }
-            
         }
-   
-        
         mapView.addAnnotations(friendAnnotations)
     }
     
@@ -249,10 +238,10 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         
         let imageView = UIImageView(frame: CGRect(origin: .zero, size: CGSize(width: 60, height: 60)))
         imageView.contentMode = .scaleAspectFill
-        imageView.image = userImage ?? UIImage(named: "defaultavatar")
         imageView.layer.cornerRadius = 30
         imageView.clipsToBounds = true
         imageView.layer.borderWidth = 3
+        imageView.contentMode = .scaleToFill
         imageView.layer.borderColor = UIColor(hex: "43D53E").cgColor
         containerView.addSubview(imageView)
         
@@ -267,12 +256,19 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         annotationView?.addSubview(containerView)
         annotationView?.frame.size = containerView.frame.size
         
+        // Tải và hiển thị ảnh từ URL
+        if let imageUrl = userImage {
+            imageView.downloaded(from: imageUrl)
+        } else {
+            imageView.image = UIImage(named: "defaultavatar")
+        }
     }
+
     
     private func configureFriendAnnotation(_ annotationView: MKAnnotationView?) {
         var containerView = annotationView?.viewWithTag(100) as? UIView
         if containerView == nil {
-            // Only create the container view if it doesn't already exist
+            // Create the container view if it doesn't already exist
             containerView = UIView(frame: CGRect(origin: .zero, size: CGSize(width: 60, height: 80)))
             containerView!.tag = 100
             
@@ -281,6 +277,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
             imageView.layer.cornerRadius = 30
             imageView.clipsToBounds = true
             imageView.layer.borderWidth = 2
+            imageView.contentMode = .scaleToFill
             imageView.layer.borderColor = UIColor(hex: "4a7eba").cgColor
             containerView!.addSubview(imageView)
             
@@ -297,16 +294,15 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         
         // Update existing image and label without creating new views
         if let imageView = containerView?.subviews.first as? UIImageView {
-            imageView.image = UIImage(named: "defaultavatar") // Update this to the actual friend's image if available
+            if let imageUrl = annotationView?.annotation?.subtitle {
+                imageView.downloaded(from: imageUrl!)  // Download the friend's image from the URL
+            } else {
+                imageView.image = UIImage(named: "defaultavatar")
+            }
         }
         
         if let label = containerView?.subviews.last as? UILabel {
             label.text = annotationView?.annotation?.title ?? "Friend"
-        }
-
-        // Optionally, only animate the first time or under certain conditions
-        if shouldAnimate(annotationView: annotationView) {
-            animateAnnotationView(containerView!)
         }
     }
 
@@ -314,20 +310,22 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         return true // Or use a condition to limit when animation happens
     }
     
-    
     private func updateAnnotationView(_ annotationView: MKAnnotationView?) {
         if let containerView = annotationView?.viewWithTag(100) {
             if let imageView = containerView.subviews.first as? UIImageView {
-                imageView.image = userImage ?? UIImage(named: "defaultavatar")
+                if let imageUrl = userImage {
+                    imageView.downloaded(from: imageUrl)
+                } else {
+                    imageView.image = UIImage(named: "defaultavatar")
+                }
                 animateAnnotationView(imageView)
             }
             if let label = containerView.subviews.last as? UILabel {
                 label.text = userName ?? "User"
             }
-            
         }
-        
     }
+
     
     private func animateAnnotationView(_ containerView: UIView) {
         containerView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)

@@ -150,12 +150,9 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
                 self.setUp()
             }
         }
+        self.viewWillAppear(true)
         
-        friendVM.fetchFriends()
-        friendVM.onFriendsUpdated = {
-            self.friendsListVw.reloadData()
-            print("reload friend lists")
-        }
+
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -173,6 +170,17 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
                    let avatarUrl = URL(string: avatarUrlString) {
                     self.avatarImg.downloaded(from: avatarUrl)
                 }
+
+                // Xóa các subviews trong statsStack
+                self.statsStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
+                
+                // Tạo lại các stat views với dữ liệu mới
+                let glimpse = self.createStatView(value: "\(self.user?.friends?.count ?? 0)", label: "Friends")
+                let friends = self.createStatView(value: "78", label: "Glimpse")
+                let likes = self.createStatView(value: "99", label: "Likes")
+                
+                // Thêm stat views vào statsStack
+                [friends, glimpse, likes].forEach { self.statsStack.addArrangedSubview($0) }
             }
         }
         
@@ -182,6 +190,7 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
             print("reload friend lists")
         }
     }
+
     
     override func viewDidLayoutSubviews() {
         editAvatarBtn.layer.cornerRadius = editAvatarBtn.frame.height / 2
@@ -340,7 +349,8 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
         print("Logout button tapped")
         
         UserDefaults.standard.removeObject(forKey: "authToken")
-        
+        UserDefaults.standard.removeObject(forKey: "isLoggedIn")
+
         NotificationCenter.default.post(name: .didLogout, object: nil)
         
         let loginVC = LoginViewController()
@@ -407,20 +417,26 @@ extension AccountViewController: UITableViewDelegate, UITableViewDataSource, UII
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
         if let selectedImage = info[.originalImage] as? UIImage {
+            let activityIndicator = UIActivityIndicatorView(style: .large)
+            activityIndicator.center = picker.view.center
+            picker.view.addSubview(activityIndicator)
+            activityIndicator.startAnimating()
+            
             uploadImage(image: selectedImage) { url in
-                if let urlString = url {
-                    self.accountVM.updateImage(url: urlString)
-                    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now(), execute: {
-                        picker.dismiss(animated: true, completion: nil)
-                        self.viewWillAppear(true)
-                    })
-
+                DispatchQueue.main.async {
+                    activityIndicator.stopAnimating()
+                    activityIndicator.removeFromSuperview()
+                    
+                    if let urlString = url {
+                        self.accountVM.updateImage(url: urlString)
+                    }
+                    
+                    picker.dismiss(animated: true, completion: nil)
+                    self.viewWillAppear(true)
                 }
             }
         }
- 
     }
-
 
     
     func uploadImage(image: UIImage, completion: @escaping (String?) -> Void) {

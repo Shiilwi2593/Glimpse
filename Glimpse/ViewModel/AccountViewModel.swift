@@ -188,7 +188,7 @@ class AccountViewModel{
             return
         }
 
-        guard let requestUrl = URL(string: "http://localhost:3000/api/users/updateImage") else {
+        guard let requestUrl = URL(string: "https://glimpse-server.onrender.com/api/users/updateImage") else {
             print("invalid url")
             return
         }

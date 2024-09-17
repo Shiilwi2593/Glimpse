@@ -10,73 +10,94 @@ import CoreLocation
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate, CLLocationManagerDelegate {
     
-    var window: UIWindow?
-    let locationManager = CLLocationManager()
-    
-    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        var window: UIWindow?
+        let locationManager = CLLocationManager()
+        var hasWaitedThreeSeconds = false
         
-        guard let windowScene = (scene as? UIWindowScene) else { return }
-        window = UIWindow(windowScene: windowScene)
-        window?.windowScene = windowScene
-        
-        locationManager.delegate = self
-        checkLocationAuthorization()
-        
-        let vc = StartViewController()
-        window?.rootViewController = vc
-        window?.makeKeyAndVisible()
-        
-//        let vc = Test2ViewController()
-//        window?.rootViewController = vc
-//        window?.makeKeyAndVisible()
-    }
-    
-    func checkLocationAuthorization() {
-        if CLLocationManager.locationServicesEnabled() {
-            switch locationManager.authorizationStatus {
-            case .notDetermined:
-                locationManager.requestWhenInUseAuthorization()
-            case .restricted, .denied:
-                showAlertForLocationAccess()
-            case .authorizedAlways, .authorizedWhenInUse:
-                proceedToApp()
-            @unknown default:
-                break
+        func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+            guard let windowScene = (scene as? UIWindowScene) else { return }
+            window = UIWindow(windowScene: windowScene)
+            window?.windowScene = windowScene
+            
+            locationManager.delegate = self
+            
+            let startViewController = StartViewController()
+            window?.rootViewController = startViewController
+            window?.makeKeyAndVisible()
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                self.hasWaitedThreeSeconds = true
+                
+                UIView.animate(withDuration: 1.0, animations: {
+                    self.window?.rootViewController?.view.alpha = 0
+                }, completion: { _ in
+                    self.checkLocationAuthorizationIfReady()
+                })
             }
-        } else {
-            showAlertForLocationAccess()
+
         }
-    }
-    
-    func showAlertForLocationAccess() {
-        let alert = UIAlertController(title: "Vị trí bị hạn chế",
-                                      message: "Bạn cần bật quyền truy cập vị trí để sử dụng ứng dụng này.",
-                                      preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Cài đặt", style: .default, handler: { _ in
-            if let appSettings = URL(string: UIApplication.openSettingsURLString) {
-                UIApplication.shared.open(appSettings)
+        
+        func checkLocationAuthorizationIfReady() {
+            guard hasWaitedThreeSeconds else { return }
+            
+            if CLLocationManager.locationServicesEnabled() {
+                switch locationManager.authorizationStatus {
+                case .notDetermined:
+                    locationManager.requestWhenInUseAuthorization()
+                case .restricted, .denied:
+                    showAlertForLocationAccess()
+                case .authorizedAlways, .authorizedWhenInUse:
+                    proceedToApp()
+                @unknown default:
+                    proceedToApp()
+                }
+            } else {
+                showAlertForLocationAccess()
             }
-        }))
-        alert.addAction(UIAlertAction(title: "Hủy", style: .cancel, handler: nil))
-        window?.rootViewController?.present(alert, animated: true)
-    }
-    
-    func proceedToApp() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        }
+        
+        func showAlertForLocationAccess() {
+            DispatchQueue.main.async {
+                let alert = UIAlertController(title: "Vị trí bị hạn chế",
+                                              message: "Bạn cần bật quyền truy cập vị trí để sử dụng ứng dụng này.",
+                                              preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "Cài đặt", style: .default, handler: { _ in
+                    if let appSettings = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(appSettings)
+                    }
+                }))
+                alert.addAction(UIAlertAction(title: "Hủy", style: .cancel, handler: { _ in
+                    self.proceedToApp()
+                }))
+                self.window?.rootViewController?.present(alert, animated: true)
+            }
+        }
+        
+        func proceedToApp() {
+            DispatchQueue.main.async {
+                if UserDefaults.standard.bool(forKey: "isLoggedIn") {
+                    self.proceedToMainApp()
+                } else {
+                    self.proceedToLogin()
+                }
+            }
+        }
+        
+        func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+            checkLocationAuthorizationIfReady()
+        }
+        
+        func proceedToLogin() {
             let loginVw = LoginViewController()
             let nav = UINavigationController(rootViewController: loginVw)
-            UIView.transition(with: self.window!, duration: 0.5, options: .transitionCurlDown) {
-                self.window?.rootViewController = nav
-            }
+            self.window?.rootViewController = nav
         }
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
-        checkLocationAuthorization()
-    }
-    
-    
-    
+        
+        func proceedToMainApp() {
+            let mainTabBarController = TabBarViewController()
+            self.window?.rootViewController = mainTabBarController
+        }
+
     
     func sceneDidDisconnect(_ scene: UIScene) {
         // Called as the scene is being released by the system.
