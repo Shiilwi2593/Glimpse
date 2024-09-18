@@ -187,34 +187,34 @@ class AccountViewModel{
             print("invalid token")
             return
         }
-
+        
         guard let requestUrl = URL(string: "https://glimpse-server.onrender.com/api/users/updateImage") else {
             print("invalid url")
             return
         }
-
+        
         var request = URLRequest(url: requestUrl)
         request.httpMethod = "PUT"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
+        
         let body: [String: Any] = [
             "token": token,
             "imageUrl": url // Make sure `url` is a String
         ]
-
+        
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-
+        
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 print(error)
                 return
             }
-
+            
             guard let data = data else {
                 print("invalid data")
                 return
             }
-
+            
             if let json = try? JSONSerialization.jsonObject(with: data) {
                 print(json)
                 return
@@ -222,6 +222,55 @@ class AccountViewModel{
         }
         task.resume() // Make sure to start the task
     }
+    
+    let mapVM = MapViewModel()
+    func getUserGlimpse(completion: @escaping ([[String: Any]]) -> Void) {
+        mapVM.getUserInfoByToken { user in
+            guard let userId = user?._id as? String else {
+                print("not found userId")
+                completion([])
+                return
+            }
+            guard let url = URL(string: "https://glimpse-server.onrender.com/api/glimpse/getUserGlimpse?id=\(userId)") else {
+                print("invalid url")
+                completion([])
+                return
+            }
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    print(error)
+                    completion([])
+                    return
+                }
+                guard let data = data else {
+                    print("invalid data")
+                    completion([])
+                    return
+                }
+                
+                do {
+                    if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                       let glimpses = json["glimpse"] as? [[String: Any]] {
+                        completion(glimpses)
+                    } else {
+                        print("Invalid JSON structure")
+                        completion([])
+                    }
+                } catch {
+                    print("Error parsing JSON: \(error)")
+                    completion([])
+                }
+            }
+            task.resume()
+        }
+    }
+    
 
-
+    
+    
 }

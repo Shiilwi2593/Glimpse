@@ -3,6 +3,7 @@
 import UIKit
 import MapKit
 import CoreLocation
+import Cloudinary
 
 class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDelegate {
     
@@ -19,11 +20,15 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
     private var userAnnotation: MKPointAnnotation?
     private var friendAnnotations: [MKPointAnnotation] = []
     
+    private var addGlimpseButton: UIButton!
+    
+    
     // MARK: - LifeCycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupMap()
         fetchUserInfo()
+        setupAddGlimpseButton()
         setupLocationManager()
         setupNotificationObserver()
         
@@ -63,6 +68,58 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         }
     }
     
+    private func setupAddGlimpseButton() {
+        addGlimpseButton = UIButton(type: .custom)
+        addGlimpseButton.frame = CGRect(x: 0, y: 0, width: 60, height: 60)
+        addGlimpseButton.layer.cornerRadius = 30
+        addGlimpseButton.setImage(UIImage(systemName: "plus"), for: .normal)
+        addGlimpseButton.tintColor = .white
+        addGlimpseButton.imageView?.contentMode = .scaleAspectFit
+        addGlimpseButton.backgroundColor = UIColor(red: 0.16, green: 0.5, blue: 0.73, alpha: 1.0)
+        addGlimpseButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
+        
+        // Add shadow to the button
+        addGlimpseButton.layer.shadowColor = UIColor.black.cgColor
+        addGlimpseButton.layer.shadowOffset = CGSize(width: 0, height: 2)
+        addGlimpseButton.layer.shadowRadius = 4
+        addGlimpseButton.layer.shadowOpacity = 0.3
+        
+        view.addSubview(addGlimpseButton)
+        
+        // Position the button in the bottom right corner
+        addGlimpseButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            addGlimpseButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            addGlimpseButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
+            addGlimpseButton.widthAnchor.constraint(equalToConstant: 60),
+            addGlimpseButton.heightAnchor.constraint(equalToConstant: 60)
+        ])
+    }
+    
+    @objc private func addButtonTapped() {
+        // Handle button tap action here
+        print("Add button tapped")
+        openCamera()
+        // You can add your desired functionality here
+    }
+    
+    private func openCamera(){
+        
+        
+        if UIImagePickerController.isSourceTypeAvailable(.camera){
+            let imagePickerController = UIImagePickerController()
+            imagePickerController.delegate = self
+            imagePickerController.sourceType = .camera
+            imagePickerController.allowsEditing = false
+            self.present(imagePickerController, animated: true, completion: nil)
+        }
+        else {
+            let alert = UIAlertController(title: "Error", message: "Camera is not available in this device", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+            self.present(alert, animated: true, completion: nil)
+        }
+    }
+    
     private func setupNotificationObserver() {
         NotificationCenter.default.addObserver(self, selector: #selector(handleLogoutNotification), name: .didLogout, object: nil)
     }
@@ -97,7 +154,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         mapView.addAnnotation(userAnnotation!)
     }
     
-
+    
     // MARK: - Location Management
     private func updateUserLocation(latitude: Double, longitude: Double) {
         guard let token = UserDefaults.standard.string(forKey: "authToken") else {
@@ -161,13 +218,13 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         mapView.removeAnnotations(friendAnnotations)
         friendAnnotations.removeAll()
         
-        guard let friends = friends else { return }
+        guard let friends = friends else { return } 
         
         for friend in friends {
             if let latitude = friend["latitude"] as? Double,
                let longitude = friend["longitude"] as? Double,
                let username = friend["username"] as? String,
-               let imageUrl = friend["image"] as? String {  // Lấy URL của ảnh bạn bè
+               let imageUrl = friend["image"] as? String {
                 let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
                 
                 if userAnnotation?.coordinate.latitude != latitude || userAnnotation?.coordinate.longitude != longitude {
@@ -263,7 +320,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
             imageView.image = UIImage(named: "defaultavatar")
         }
     }
-
+    
     
     private func configureFriendAnnotation(_ annotationView: MKAnnotationView?) {
         var containerView = annotationView?.viewWithTag(100) as? UIView
@@ -305,7 +362,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
             label.text = annotationView?.annotation?.title ?? "Friend"
         }
     }
-
+    
     private func shouldAnimate(annotationView: MKAnnotationView?) -> Bool {
         return true // Or use a condition to limit when animation happens
     }
@@ -325,7 +382,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
             }
         }
     }
-
+    
     
     private func animateAnnotationView(_ containerView: UIView) {
         containerView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
@@ -345,4 +402,66 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
 
 extension Notification.Name {
     static let didLogout = Notification.Name("didLogout")
+}
+
+extension MapViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate{
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+           if let image = info[.originalImage] as? UIImage {
+               print("Ảnh đã chụp: \(image)")
+               
+               // Gọi phương thức uploadImage để upload ảnh
+               uploadImage(image: image) { [weak self] url in
+                   DispatchQueue.main.async {
+                       if let url = url {
+                           print("Ảnh đã được upload thành công. URL: \(url)")
+                           self?.mapVM.uploadGlimpse(image: url)
+                           // Bạn có thể làm gì đó với URL của ảnh đã upload ở đây
+                       } else {
+                           print("Không thể upload ảnh.")
+                       }
+                   }
+               }
+           }
+           picker.dismiss(animated: true, completion: nil)
+       }
+       
+       func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+           picker.dismiss(animated: true, completion: nil)
+       }
+    func uploadImage(image: UIImage, completion: @escaping (String?) -> Void) {
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            completion(nil)
+            return
+        }
+        let cloudinary = CLDCloudinary(configuration: CLDConfiguration(cloudName: "dkea6b2lm", apiKey: "915397132791353", apiSecret: "IAE2SY2hl3UnmMMj28SdOkY8Ces"))
+        
+        cloudinary.createUploader().upload(data: imageData, uploadPreset: "ml_default", progress: { (progress) in
+            print("Upload progress: \(progress.fractionCompleted)")
+        }, completionHandler: { (result, error) in
+            if let error = error {
+                print("Error uploading image: \(error.localizedDescription)")
+                completion(nil)
+                return
+            }
+            
+            guard let result = result else {
+                print("Upload result is nil")
+                completion(nil)
+                return
+            }
+            
+            print("Upload result: \(result)")
+            
+            guard let url = result.secureUrl as String? else {
+                print("Secure URL is nil")
+                completion(nil)
+                return
+            }
+            
+            print("Image URL: \(url)")
+            
+            completion(url)
+        })
+
+    }
 }

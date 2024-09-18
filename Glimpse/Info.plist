@@ -26,7 +26,8 @@
         <string>You need to enable location services to use this app.</string>
         <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
         <string>You need to enable location services to use this app.</string>
-        
+        <key>NSCameraUsageDescription</key>
+        <string>This app requires access to the camera to take photos for sharing glimpses.</string>
     </dict>
 </plist>
 

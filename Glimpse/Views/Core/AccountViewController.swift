@@ -102,6 +102,7 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
     }()
     
     
+    
     private func createStatView(value: String, label: String) -> UIView {
         let container = UIView()
         
@@ -134,6 +135,7 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
     }
     
     
+    
     //MARK: -LifeCycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -152,6 +154,9 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
         }
         self.viewWillAppear(true)
         
+        self.accountVM.getUserGlimpse { glimpse in
+            print(glimpse)
+        }
 
     }
     

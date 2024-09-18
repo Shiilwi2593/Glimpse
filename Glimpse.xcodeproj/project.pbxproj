@@ -23,6 +23,7 @@
 		2B4E01F02C87331200EEDBDF /* Test2ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4E01EF2C87331200EEDBDF /* Test2ViewController.swift */; };
 		2B66D34F2C8F20E7002CC70C /* FriendRequestCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B66D34E2C8F20E7002CC70C /* FriendRequestCell.swift */; };
 		2B66D3512C8F3C4E002CC70C /* FriendRequestsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B66D3502C8F3C4E002CC70C /* FriendRequestsViewController.swift */; };
+		2B6AD9E62C9ACD31003A9454 /* Glimpse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6AD9E52C9ACD31003A9454 /* Glimpse.swift */; };
 		2B8F23442C79CB0D005406DD /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8F23432C79CB0D005406DD /* User.swift */; };
 		2B8F23462C79D198005406DD /* SignUp2ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8F23452C79D198005406DD /* SignUp2ViewController.swift */; };
 		2B8F23482C79D773005406DD /* SignUpViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8F23472C79D773005406DD /* SignUpViewModel.swift */; };
@@ -56,6 +57,7 @@
 		2B4E01EF2C87331200EEDBDF /* Test2ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Test2ViewController.swift; sourceTree = "<group>"; };
 		2B66D34E2C8F20E7002CC70C /* FriendRequestCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendRequestCell.swift; sourceTree = "<group>"; };
 		2B66D3502C8F3C4E002CC70C /* FriendRequestsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendRequestsViewController.swift; sourceTree = "<group>"; };
+		2B6AD9E52C9ACD31003A9454 /* Glimpse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Glimpse.swift; sourceTree = "<group>"; };
 		2B8F23432C79CB0D005406DD /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		2B8F23452C79D198005406DD /* SignUp2ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUp2ViewController.swift; sourceTree = "<group>"; };
 		2B8F23472C79D773005406DD /* SignUpViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpViewModel.swift; sourceTree = "<group>"; };
@@ -152,6 +154,7 @@
 			isa = PBXGroup;
 			children = (
 				2B8F23432C79CB0D005406DD /* User.swift */,
+				2B6AD9E52C9ACD31003A9454 /* Glimpse.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -289,6 +292,7 @@
 				2B8F23462C79D198005406DD /* SignUp2ViewController.swift in Sources */,
 				2BB1146E2C903D36008E94E1 /* SearchListCell.swift in Sources */,
 				2B1534872C7B414F0071C228 /* MapViewModel.swift in Sources */,
+				2B6AD9E62C9ACD31003A9454 /* Glimpse.swift in Sources */,
 				2BE0E86A2C636D8C00D48CEF /* SceneDelegate.swift in Sources */,
 				2B15347C2C7B12F40071C228 /* TabBarViewController.swift in Sources */,
 				2B92BA7F2C919A4000F882E7 /* AccountViewModel.swift in Sources */,
