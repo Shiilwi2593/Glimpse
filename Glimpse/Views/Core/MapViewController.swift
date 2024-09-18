@@ -43,6 +43,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
     
     override func viewWillAppear(_ animated: Bool) {
         fetchAndUpdateFriendsLocations()
+        fetchUserInfo()
     }
     
     
