@@ -6,6 +6,7 @@
 //
 
 import Foundation
+
 class AccountViewModel{
     func isMe(id: String, completion: @escaping (Bool) -> Void){
         guard let token = UserDefaults.standard.string(forKey: "authToken") else{
@@ -224,53 +225,90 @@ class AccountViewModel{
     }
     
     let mapVM = MapViewModel()
-    func getUserGlimpse(completion: @escaping ([[String: Any]]) -> Void) {
-        mapVM.getUserInfoByToken { user in
-            guard let userId = user?._id as? String else {
-                print("not found userId")
-                completion([])
-                return
-            }
-            guard let url = URL(string: "https://glimpse-server.onrender.com/api/glimpse/getUserGlimpse?id=\(userId)") else {
+    var user: User!
+    var glimpse: [Glimpse] = []
+    var ortherGlimpse: [Glimpse] = []
+    
+    func getUserGlimpse(completion: @escaping () -> Void) {
+        mapVM.getUserInfoByToken {user in
+            self.user = user
+            guard let url = URL(string: "https://glimpse-server.onrender.com/api/glimpse/getUserGlimpse?id=\(self.user._id)") else {
                 print("invalid url")
-                completion([])
                 return
             }
-            
+
             var request = URLRequest(url: url)
             request.httpMethod = "GET"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            
+
             let task = URLSession.shared.dataTask(with: request) { data, response, error in
                 if let error = error {
                     print(error)
-                    completion([])
                     return
                 }
+
                 guard let data = data else {
                     print("invalid data")
-                    completion([])
                     return
                 }
-                
+
+                let decoder = JSONDecoder()
+                decoder.dateDecodingStrategy = .iso8601
+
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+                decoder.dateDecodingStrategy = .formatted(dateFormatter)
+
                 do {
-                    if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                       let glimpses = json["glimpse"] as? [[String: Any]] {
-                        completion(glimpses)
-                    } else {
-                        print("Invalid JSON structure")
-                        completion([])
-                    }
+                    let glimpses = try decoder.decode([Glimpse].self, from: data)
+                    self.glimpse = glimpses // Update the glimpse array
+                    completion()
                 } catch {
-                    print("Error parsing JSON: \(error)")
-                    completion([])
+                    print("Decoding error: \(error)")
                 }
             }
             task.resume()
         }
     }
     
+    func fetchFriendGlimpse(id: String,completion: @escaping () -> Void){
+        guard let url = URL(string: "https://glimpse-server.onrender.com/api/glimpse/getUserGlimpse?id=\(id)") else {
+            print("invalid url")
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print(error)
+                return
+            }
 
-    
-    
+            guard let data = data else {
+                print("invalid data")
+                return
+            }
+
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+            decoder.dateDecodingStrategy = .formatted(dateFormatter)
+
+            do {
+                let glimpses = try decoder.decode([Glimpse].self, from: data)
+                self.ortherGlimpse = glimpses // Update the glimpse array
+                completion()
+            } catch {
+                print("Decoding error: \(error)")
+            }
+        }
+        task.resume()
+    }
+
+
 }

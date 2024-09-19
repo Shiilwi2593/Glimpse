@@ -49,6 +49,23 @@ class FriendsViewController: UIViewController {
         return noResultLbl
     }()
     
+    private let addFrBtn: UIButton = {
+        let addFrBtn = UIButton(type: .custom)
+        addFrBtn.setImage(UIImage(systemName: "person.badge.plus")?.withTintColor(.black, renderingMode: .alwaysOriginal), for: .normal)
+        addFrBtn.translatesAutoresizingMaskIntoConstraints = false
+        return addFrBtn
+        
+    }()
+    
+    private let envelopeBtn: UIButton = {
+        let envelopeBtn = UIButton(type: .custom)
+        envelopeBtn.setImage(UIImage(systemName: "envelope")?.withTintColor(.black, renderingMode: .alwaysOriginal), for: .normal)
+        envelopeBtn.translatesAutoresizingMaskIntoConstraints = false
+        return envelopeBtn
+    }()
+    
+    
+    
     // MARK: - LifeCycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -61,6 +78,7 @@ class FriendsViewController: UIViewController {
         viewModel.onFriendsUpdated = {
             self.friendsLstTableVw.reloadData()
         }
+        viewWillAppear(true)
         
         
     }
@@ -69,28 +87,29 @@ class FriendsViewController: UIViewController {
         super.viewWillAppear(animated)
         self.tabBarController?.tabBar.isHidden = false
         viewModel.fetchFriends()
+      
+        viewModel.fetchFriendRequest()
+        viewModel.onFriendRequest = {
+            if self.viewModel.friendRequest.count > 0 {
+                self.envelopeBtn.setImage(UIImage(systemName: "envelope.badge")?.withTintColor(.red, renderingMode: .alwaysOriginal), for: .normal)
+            } else {
+                self.envelopeBtn.setImage(UIImage(systemName: "envelope")?.withTintColor(.black, renderingMode: .alwaysOriginal), for: .normal)
+            }
+        }
+       
         friendsLstTableVw.reloadData()
-        viewDidLoad()
     }
     
     // MARK: - Setup
     private func setup() {
         view.addSubview(friendListLbl)
         view.addSubview(noResultLbl)
-        
-        let addFrBtn = UIButton(type: .custom)
-        addFrBtn.setImage(UIImage(systemName: "person.badge.plus")?.withTintColor(.black, renderingMode: .alwaysOriginal), for: .normal)
-        addFrBtn.translatesAutoresizingMaskIntoConstraints = false
-        addFrBtn.addTarget(self, action: #selector(didtapAddFrBtn), for: .touchUpInside)
-        
-        let envelopeBtn = UIButton(type: .custom)
-        envelopeBtn.setImage(UIImage(systemName: "envelope")?.withTintColor(.black, renderingMode: .alwaysOriginal), for: .normal)
-        envelopeBtn.translatesAutoresizingMaskIntoConstraints = false
-        envelopeBtn.addTarget(self, action: #selector(didTapEnvelopeBtn), for: .touchUpInside)
-        
         view.addSubview(addFrBtn)
         view.addSubview(envelopeBtn)
         
+        envelopeBtn.addTarget(self, action: #selector(didTapEnvelopeBtn), for: .touchUpInside)
+        addFrBtn.addTarget(self, action: #selector(didtapAddFrBtn), for: .touchUpInside)
+
         
         NSLayoutConstraint.activate([
             friendListLbl.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 13),

@@ -101,6 +101,39 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
         return button
     }()
     
+    private let glimpseView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.minimumInteritemSpacing = 5
+        layout.minimumLineSpacing = 10
+        layout.sectionInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        
+        let collectionVw = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionVw.translatesAutoresizingMaskIntoConstraints = false
+        collectionVw.backgroundColor = .white
+        collectionVw.register(GlimpseCell.self, forCellWithReuseIdentifier: "GlimpseCell")
+        return collectionVw
+    }()
+    
+    private let noGlimpseLbl: UILabel = {
+        let noGlimpseLbl = UILabel()
+        noGlimpseLbl.translatesAutoresizingMaskIntoConstraints = false
+        noGlimpseLbl.text = "This account has no glimpse"
+        noGlimpseLbl.textColor = .gray
+        noGlimpseLbl.isHidden = true
+        noGlimpseLbl.font = UIFont.systemFont(ofSize: 13, weight: .regular)
+        return noGlimpseLbl
+    }()
+    
+    
+    private let noFrLbl: UILabel = {
+        let noResultLbl = UILabel()
+        noResultLbl.translatesAutoresizingMaskIntoConstraints = false
+        noResultLbl.text = "This account has no friends"
+        noResultLbl.textColor = .gray
+        noResultLbl.isHidden = true
+        noResultLbl.font = UIFont.systemFont(ofSize: 13, weight: .regular)
+        return noResultLbl
+    }()
     
     
     private func createStatView(value: String, label: String) -> UIView {
@@ -141,6 +174,7 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
         super.viewDidLoad()
         view.backgroundColor = .white
         title = "Profile"
+        
         setUpNavigationBar()
         mapVM.getUserInfoByToken { user in
             self.user = user
@@ -154,10 +188,10 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
         }
         self.viewWillAppear(true)
         
-        self.accountVM.getUserGlimpse { glimpse in
-            print(glimpse)
-        }
-
+        
+        glimpseView.isHidden = false
+        friendsListVw.isHidden = true
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -175,27 +209,58 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
                    let avatarUrl = URL(string: avatarUrlString) {
                     self.avatarImg.downloaded(from: avatarUrl)
                 }
-
-                // Xóa các subviews trong statsStack
+                
+                self.glimpseView.isHidden = false
+                self.friendsListVw.isHidden = true
+                
+                self.fetchGlimpses {
+                    self.createStatsViews()
+                }
+                
+                self.friendVM.fetchFriends()
+                self.friendVM.onFriendsUpdated = {
+                    self.friendsListVw.reloadData()
+                    print("reload friend lists")
+                }
+                
                 self.statsStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
-                
-                // Tạo lại các stat views với dữ liệu mới
-                let glimpse = self.createStatView(value: "\(self.user?.friends?.count ?? 0)", label: "Friends")
-                let friends = self.createStatView(value: "78", label: "Glimpse")
-                let likes = self.createStatView(value: "99", label: "Likes")
-                
-                // Thêm stat views vào statsStack
-                [friends, glimpse, likes].forEach { self.statsStack.addArrangedSubview($0) }
             }
         }
+    }
+    
+    func createStatsViews() {
+        let glimpse = self.createStatView(value: "\(self.user?.friends?.count ?? 0)", label: "Friends")
+        let friends = self.createStatView(value: "\(self.accountVM.glimpse.count)", label: "Glimpse")
         
-        friendVM.fetchFriends()
-        friendVM.onFriendsUpdated = {
-            self.friendsListVw.reloadData()
-            print("reload friend lists")
+        [friends, glimpse].forEach { self.statsStack.addArrangedSubview($0) }
+    }
+    
+    private func fetchGlimpses(completion: @escaping () -> Void) {
+        let loading = UIActivityIndicatorView(style: .large)
+        loading.translatesAutoresizingMaskIntoConstraints = false
+        glimpseView.addSubview(loading)
+        NSLayoutConstraint.activate([
+            loading.centerXAnchor.constraint(equalTo: glimpseView.centerXAnchor),
+            loading.centerYAnchor.constraint(equalTo: glimpseView.centerYAnchor)
+        ])
+        loading.startAnimating()
+        
+        accountVM.getUserGlimpse { [weak self] in
+            DispatchQueue.main.async {
+                completion()
+                self?.glimpseView.reloadData()
+                print("Reloaded glimpse view data")
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    loading.stopAnimating()
+                    loading.removeFromSuperview()
+                }
+                if self?.accountVM.glimpse.count == 0{
+                    self?.noGlimpseLbl.isHidden = false
+                }
+            }
         }
     }
-
     
     override func viewDidLayoutSubviews() {
         editAvatarBtn.layer.cornerRadius = editAvatarBtn.frame.height / 2
@@ -212,14 +277,15 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
         view.addSubview(navBar)
         view.addSubview(friendsListVw)
         view.addSubview(editAvatarBtn)
+        view.addSubview(glimpseView)
+        view.addSubview(noGlimpseLbl)
+        view.addSubview(noFrLbl)
         
         navBar.addSubview(glimpseBtn)
         navBar.addSubview(friendsBtn)
         navBar.addSubview(selectionIndicator)
         
-        
-        self.avatarImg.downloaded(from: "https://i.ibb.co/jggwqDf/defaultavatar.jpg")
-        
+        self.avatarImg.downloaded(from: (self.user?.image)!)
         
         if let username = self.user?.username{
             usernameLbl.text = username
@@ -229,13 +295,9 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
             subtitleLbl.text = email
         }
         
-        let glimpse = createStatView(value: "\(self.user?.friends?.count ?? 0)", label: "Friends")
-        let friends = createStatView(value: "78", label: "Glimpse")
-        let likes = createStatView(value: "99", label: "Likes")
+        glimpseView.delegate = self
+        glimpseView.dataSource = self
         
-        [friends, glimpse, likes].forEach { statsStack.addArrangedSubview($0) }
-        
-        friendsListVw.isHidden = true
         friendsListVw.dataSource = self
         friendsListVw.delegate = self
         
@@ -259,6 +321,8 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
             statsStack.topAnchor.constraint(equalTo: subtitleLbl.bottomAnchor, constant: 22),
             statsStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             statsStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            statsStack.heightAnchor.constraint(equalToConstant: 50),
+            
             
             navBar.topAnchor.constraint(equalTo: statsStack.bottomAnchor, constant: 20),
             navBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -283,7 +347,19 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
             friendsListVw.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
             friendsListVw.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
             friendsListVw.topAnchor.constraint(equalTo: selectionIndicator.bottomAnchor, constant: 8),
-            friendsListVw.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10)
+            friendsListVw.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10),
+            
+            glimpseView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
+            glimpseView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
+            glimpseView.topAnchor.constraint(equalTo: selectionIndicator.bottomAnchor, constant: 8),
+            glimpseView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10),
+            
+            noGlimpseLbl.centerXAnchor.constraint(equalTo: glimpseView.centerXAnchor),
+            noGlimpseLbl.centerYAnchor.constraint(equalTo: glimpseView.centerYAnchor),
+            
+            noFrLbl.centerXAnchor.constraint(equalTo: friendsListVw.centerXAnchor),
+            noFrLbl.centerYAnchor.constraint(equalTo: friendsListVw.centerYAnchor)
+
         ])
         
         [glimpseBtn, friendsBtn].forEach { $0.translatesAutoresizingMaskIntoConstraints = false }
@@ -295,15 +371,14 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
         
         editAvatarBtn.addTarget(self, action: #selector(editAvatarTapped), for: .touchUpInside)
         
-        //        addFriendButton.addTarget(self, action: #selector(addFriendTapped), for: .touchUpInside)
         
     }
     
     @objc private func editAvatarTapped() {
         let imagePickerController = UIImagePickerController()
         imagePickerController.delegate = self
-        imagePickerController.sourceType = .photoLibrary // Open gallery
-        imagePickerController.allowsEditing = true // Optional: allows editing of the image
+        imagePickerController.sourceType = .photoLibrary
+        imagePickerController.allowsEditing = true
         present(imagePickerController, animated: true, completion: nil)
     }
     
@@ -311,11 +386,21 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
         [glimpseBtn, friendsBtn].forEach { $0.setTitleColor(.gray, for: .normal) }
         sender.setTitleColor(.black, for: .normal)
         
-        if sender.tag == 0{
+        if sender.tag == 0 {
             friendsListVw.isHidden = true
-            print("tag: 0")
-        } else{
+            glimpseView.isHidden = false
+            noFrLbl.removeFromSuperview()
+            if accountVM.glimpse.count == 0{
+                noGlimpseLbl.isHidden = false
+            }
+        } else {
             friendsListVw.isHidden = false
+            glimpseView.isHidden = true
+            noGlimpseLbl.removeFromSuperview()
+            
+            if user?.friends?.count == 0 {
+                noFrLbl.isHidden = false
+            }
         }
         
         UIView.animate(withDuration: 0.3) {
@@ -355,7 +440,7 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
         
         UserDefaults.standard.removeObject(forKey: "authToken")
         UserDefaults.standard.removeObject(forKey: "isLoggedIn")
-
+        
         NotificationCenter.default.post(name: .didLogout, object: nil)
         
         let loginVC = LoginViewController()
@@ -442,7 +527,7 @@ extension AccountViewController: UITableViewDelegate, UITableViewDataSource, UII
             }
         }
     }
-
+    
     
     func uploadImage(image: UIImage, completion: @escaping (String?) -> Void) {
         guard let imageData = image.jpegData(compressionQuality: 0.8) else {
@@ -450,7 +535,7 @@ extension AccountViewController: UITableViewDelegate, UITableViewDataSource, UII
             return
         }
         let cloudinary = CLDCloudinary(configuration: CLDConfiguration(cloudName: "dkea6b2lm", apiKey: "915397132791353", apiSecret: "IAE2SY2hl3UnmMMj28SdOkY8Ces"))
-
+        
         cloudinary.createUploader().upload(data: imageData, uploadPreset: "ml_default", progress: { (progress) in
             print("Upload progress: \(progress.fractionCompleted)")
         }, completionHandler: { (result, error) in
@@ -459,20 +544,48 @@ extension AccountViewController: UITableViewDelegate, UITableViewDataSource, UII
                 completion(nil)
                 return
             }
-
+            
             guard let result = result, let url = result.secureUrl as String? else {
                 completion(nil)
                 return
             }
             print(url)
-
+            
             completion(url)
         })
     }
     
-
+    
     
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
         picker.dismiss(animated: true, completion: nil)
     }
 }
+
+extension AccountViewController: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        let count = accountVM.glimpse.count
+        print("Number of items in collection view: \(count)")
+        return count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "GlimpseCell", for: indexPath) as! GlimpseCell
+        let glimpse = accountVM.glimpse[indexPath.item]
+        print("Configuring cell at index \(indexPath.item) with image URL: \(glimpse.image)")
+        cell.configure(with: glimpse.image)
+        return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let numberOfItemsPerRow: CGFloat = 3
+        let padding: CGFloat = 10
+        let totalPadding = (2 * padding) + ((numberOfItemsPerRow - 1) * padding)
+        let width = (collectionView.frame.width - totalPadding) / numberOfItemsPerRow
+        let size = CGSize(width: width, height: width)
+        return size
+    }
+    
+}
+
+

@@ -21,7 +21,10 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
     private var friendAnnotations: [MKPointAnnotation] = []
     
     private var addGlimpseButton: UIButton!
-    
+    private var activityIndicator: UIActivityIndicatorView?
+    private var activityIndicatorContainer: UIView?
+
+
     
     // MARK: - LifeCycle
     override func viewDidLoad() {
@@ -406,20 +409,65 @@ extension Notification.Name {
 }
 
 extension MapViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate{
+
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-           if let image = info[.originalImage] as? UIImage {
+
+        if let image = info[.originalImage] as? UIImage {
                print("Ảnh đã chụp: \(image)")
+
+               // Tạo và cấu hình activity indicator container
+               let container = UIView()
+               container.translatesAutoresizingMaskIntoConstraints = false
+               container.backgroundColor = UIColor(white: 0, alpha: 0.7) // Nền mờ
+               container.layer.cornerRadius = 10
+               container.layer.masksToBounds = true
+               self.view.addSubview(container)
+               self.activityIndicatorContainer = container
                
-               // Gọi phương thức uploadImage để upload ảnh
+               // Cài đặt Auto Layout cho container
+               NSLayoutConstraint.activate([
+                   container.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+                   container.centerYAnchor.constraint(equalTo: self.view.centerYAnchor),
+                   container.widthAnchor.constraint(equalToConstant: 120), // Chiều rộng khung
+                   container.heightAnchor.constraint(equalToConstant: 120) // Chiều cao khung
+               ])
+               
+               // Tạo và cấu hình activity indicator
+               let activityIndicator = UIActivityIndicatorView(style: .large)
+               activityIndicator.color = .white // Màu của indicator
+               activityIndicator.translatesAutoresizingMaskIntoConstraints = false
+               container.addSubview(activityIndicator)
+               activityIndicator.startAnimating()
+               
+               // Cài đặt Auto Layout cho activity indicator
+               NSLayoutConstraint.activate([
+                   activityIndicator.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+                   activityIndicator.centerYAnchor.constraint(equalTo: container.centerYAnchor)
+               ])
+               
+               // Vô hiệu hóa tương tác người dùng
+               self.view.isUserInteractionEnabled = false
+
                uploadImage(image: image) { [weak self] url in
                    DispatchQueue.main.async {
                        if let url = url {
                            print("Ảnh đã được upload thành công. URL: \(url)")
                            self?.mapVM.uploadGlimpse(image: url)
-                           // Bạn có thể làm gì đó với URL của ảnh đã upload ở đây
+                           
+                           // Hiển thị alert thông báo upload thành công
+                           let alert = UIAlertController(title: "Success", message: "Upload glimpse successfully", preferredStyle: .alert)
+                           self?.present(alert, animated: true, completion: {
+                               DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                                   alert.dismiss(animated: true, completion: nil)
+                               }
+                           })
                        } else {
                            print("Không thể upload ảnh.")
                        }
+                       
+                       // Dừng activity indicator và mở khóa tương tác người dùng
+                       self?.activityIndicatorContainer?.removeFromSuperview()
+                       self?.view.isUserInteractionEnabled = true
                    }
                }
            }

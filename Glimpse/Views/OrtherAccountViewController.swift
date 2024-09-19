@@ -120,6 +120,29 @@ class OrtherAccountViewController: UIViewController {
         return noResultLbl
     }()
     
+    private let glimpseView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.minimumInteritemSpacing = 5
+        layout.minimumLineSpacing = 10
+        layout.sectionInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        
+        let collectionVw = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionVw.translatesAutoresizingMaskIntoConstraints = false
+        collectionVw.backgroundColor = .white
+        collectionVw.register(GlimpseCell.self, forCellWithReuseIdentifier: "GlimpseCell")
+        return collectionVw
+    }()
+    
+    private let noGlimpseLbl: UILabel = {
+        let noGlimpseLbl = UILabel()
+        noGlimpseLbl.translatesAutoresizingMaskIntoConstraints = false
+        noGlimpseLbl.text = "This account has no glimpse"
+        noGlimpseLbl.textColor = .gray
+        noGlimpseLbl.isHidden = true
+        noGlimpseLbl.font = UIFont.systemFont(ofSize: 13, weight: .regular)
+        return noGlimpseLbl
+    }()
+    
     private func createStatView(value: String, label: String) -> UIView {
         let container = UIView()
         
@@ -165,7 +188,7 @@ class OrtherAccountViewController: UIViewController {
             }
         }
         self.viewWillAppear(true)
-
+        
     }
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -182,52 +205,89 @@ class OrtherAccountViewController: UIViewController {
                     self.subtitleLbl.text = email
                 }
                 
-                if let image = self.user?.image{
-                    self.avatarImg.downloaded(from: (self.user?.image)!)
-                    self.avatarImg.contentMode = .scaleAspectFill
-                }
-                // Xóa các subviews trong statsStack
-                self.statsStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
                 
-                // Tạo lại các stat views với dữ liệu mới
-                let glimpse = self.createStatView(value: "\(self.user?.friends?.count ?? 0)", label: "Friends")
-                let friends = self.createStatView(value: "78", label: "Glimpse")
-                let likes = self.createStatView(value: "99", label: "Likes")
-                
-                // Thêm stat views vào statsStack
-                [friends, glimpse, likes].forEach { self.statsStack.addArrangedSubview($0) }
-            }
-        }
-        
-        friendVM.fetchFriendsById(id: self.id)
-        friendVM.onFriendsUpdated = {
-            self.friendsListVw.reloadData()
-            self.noResultLbl.isHidden = !self.friendVM.friends.isEmpty
-            print("reload friend lists")
-        }
-        
-        // Setting the friend status and button title
-        friendVM.isFriend(friendId: self.id) { isFriend in
-            DispatchQueue.main.async {
-                if isFriend {
-                    self.addFriendButton.setTitle("Friend", for: .normal)
-                    self.addFriendButton.backgroundColor = UIColor(red: 0.251, green: 0.8, blue: 0.204, alpha: 1.0)
-                } else {
-                    self.friendVM.isPending(receiverId: self.id) { isPending in
-                        DispatchQueue.main.async {
-                            if isPending {
-                                self.addFriendButton.setTitle("Pending", for: .normal)
-                                self.addFriendButton.backgroundColor = UIColor(hex: "c35ac7")
+                self.friendVM.isFriend(friendId: self.id) { isFriend in
+                    DispatchQueue.main.async {
+                        if isFriend {
+                            self.addFriendButton.setTitle("Friend", for: .normal)
+                            self.addFriendButton.backgroundColor = UIColor(red: 0.251, green: 0.8, blue: 0.204, alpha: 1.0)
+                        } else {
+                            self.friendVM.isPending(receiverId: self.id) { isPending in
+                                DispatchQueue.main.async {
+                                    if isPending {
+                                        self.addFriendButton.setTitle("Pending", for: .normal)
+                                        self.addFriendButton.backgroundColor = UIColor(hex: "c35ac7")
+                                    }
+                                }
                             }
                         }
+                        self.setupButton()
+                        self.updateAddFriendButton()
+                        
                     }
                 }
-                self.setupButton()
-                self.updateAddFriendButton()
-
+                
+                
+                
+                self.glimpseView.isHidden = false
+                self.friendsListVw.isHidden = true
+                
+                self.fetchGlimpses {
+                    self.createStatsViews()
+                }
+                
+                self.friendVM.fetchFriendsById(id: self.id)
+                self.friendVM.onFriendsUpdated = {
+                    self.friendsListVw.reloadData()
+                    print("reload friend lists")
+                }
+                
+                self.statsStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
+                
+                
             }
         }
     }
+    
+    func createStatsViews() {
+        
+        let glimpse = self.createStatView(value: "\(self.user?.friends?.count ?? 0)", label: "Friends")
+        let friends = self.createStatView(value: "\(self.accountVM.ortherGlimpse.count)", label: "Glimpse")
+        
+        [friends, glimpse].forEach { self.statsStack.addArrangedSubview($0) }
+    }
+    
+    private func fetchGlimpses(completion: @escaping () -> Void) {
+        let loading = UIActivityIndicatorView(style: .large)
+        loading.translatesAutoresizingMaskIntoConstraints = false
+        glimpseView.addSubview(loading)
+        NSLayoutConstraint.activate([
+            loading.centerXAnchor.constraint(equalTo: glimpseView.centerXAnchor),
+            loading.centerYAnchor.constraint(equalTo: glimpseView.centerYAnchor)
+        ])
+        loading.startAnimating()
+        
+        accountVM.fetchFriendGlimpse(id: self.id) { [weak self] in
+            DispatchQueue.main.async {
+                completion()
+                self?.glimpseView.reloadData()
+                print("Reloaded glimpse view data")
+                
+                if self?.accountVM.ortherGlimpse.count == 0{
+                    self?.noGlimpseLbl.isHidden = false
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    loading.stopAnimating()
+                    loading.removeFromSuperview()
+                }
+                
+            }
+        }
+    }
+    
+    
+    
     
     
     //MARK: -SetUp
@@ -239,7 +299,9 @@ class OrtherAccountViewController: UIViewController {
         view.addSubview(addFriendButton)
         view.addSubview(navBar)
         view.addSubview(friendsListVw)
+        view.addSubview(glimpseView)
         view.addSubview(noResultLbl)
+        view.addSubview(noGlimpseLbl)
         
         navBar.addSubview(glimpseBtn)
         navBar.addSubview(friendsBtn)
@@ -257,17 +319,13 @@ class OrtherAccountViewController: UIViewController {
             subtitleLbl.text = email
         }
         
-//        let glimpse = createStatView(value: "\(self.user?.friends?.count ?? 0)", label: "Friends")
-//        let friends = createStatView(value: "78", label: "Glimpse")
-//        let likes = createStatView(value: "99", label: "Likes")
-//        
-//        [friends, glimpse, likes].forEach { statsStack.addArrangedSubview($0) }
+        glimpseView.delegate = self
+        glimpseView.dataSource = self
         
-        friendsListVw.isHidden = true
         friendsListVw.dataSource = self
         friendsListVw.delegate = self
         
-    
+        
         
         NSLayoutConstraint.activate([
             avatarImg.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
@@ -315,8 +373,16 @@ class OrtherAccountViewController: UIViewController {
             friendsListVw.topAnchor.constraint(equalTo: selectionIndicator.bottomAnchor, constant: 8),
             friendsListVw.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10),
             
+            glimpseView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
+            glimpseView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
+            glimpseView.topAnchor.constraint(equalTo: selectionIndicator.bottomAnchor, constant: 8),
+            glimpseView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10),
+            
             noResultLbl.centerXAnchor.constraint(equalTo: friendsListVw.centerXAnchor),
-            noResultLbl.centerYAnchor.constraint(equalTo: friendsListVw.centerYAnchor)
+            noResultLbl.centerYAnchor.constraint(equalTo: friendsListVw.centerYAnchor),
+            
+            noGlimpseLbl.centerXAnchor.constraint(equalTo: glimpseView.centerXAnchor),
+            noGlimpseLbl.centerYAnchor.constraint(equalTo: glimpseView.centerYAnchor)
         ])
         
         [glimpseBtn, friendsBtn].forEach { $0.translatesAutoresizingMaskIntoConstraints = false }
@@ -358,7 +424,7 @@ class OrtherAccountViewController: UIViewController {
     func setupButton() {
         print(addFriendButton.currentTitle ?? "none title available")
         addFriendButton.removeTarget(self, action: nil, for: .allEvents)
-
+        
         if addFriendButton.currentTitle == "Friend" {
             addFriendButton.addTarget(self, action: #selector(didTapUnfriend), for: .touchUpInside)
         } else if addFriendButton.currentTitle == "Pending" {
@@ -386,7 +452,7 @@ class OrtherAccountViewController: UIViewController {
         }))
         present(alert, animated: true, completion: nil)
     }
-
+    
     @objc private func didTapUnRequest() {
         let alert = UIAlertController(title: "Confirm", message: "Are you sure you want to cancel the friend request?", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
@@ -396,7 +462,7 @@ class OrtherAccountViewController: UIViewController {
                 if success {
                     print("Request removed successfully")
                     DispatchQueue.main.async {
-                        self.viewWillAppear(true) // Tải lại view để cập nhật trạng thái nút
+                        self.viewWillAppear(true)
                     }
                 } else {
                     print("Failed to remove request")
@@ -405,7 +471,7 @@ class OrtherAccountViewController: UIViewController {
         }))
         present(alert, animated: true, completion: nil)
     }
-
+    
     @objc private func didTapAddFriend() {
         let alert = UIAlertController(title: "Confirm", message: "Are you sure you want to send a friend request?", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
@@ -418,17 +484,27 @@ class OrtherAccountViewController: UIViewController {
         }))
         present(alert, animated: true, completion: nil)
     }
-
+    
     
     @objc private func navButtonTapped(_ sender: UIButton) {
         [glimpseBtn, friendsBtn].forEach { $0.setTitleColor(.gray, for: .normal) }
         sender.setTitleColor(.black, for: .normal)
         
-        if sender.tag == 0{
+        if sender.tag == 0 {
             friendsListVw.isHidden = true
-            print("tag: 0")
-        } else{
+            glimpseView.isHidden = false
+            noResultLbl.isHidden = true
+            if accountVM.glimpse.count == 0{
+                noGlimpseLbl.isHidden = false
+            }
+        } else {
+            noGlimpseLbl.isHidden = true
             friendsListVw.isHidden = false
+            glimpseView.isHidden = true
+            
+            if user?.friends?.count == 0 {
+                noResultLbl.isHidden = false
+            }
         }
         
         UIView.animate(withDuration: 0.3) {
@@ -532,3 +608,30 @@ extension OrtherAccountViewController: UITableViewDelegate, UITableViewDataSourc
     }
     
 }
+
+extension OrtherAccountViewController: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        let count = accountVM.ortherGlimpse.count
+        print("Number of items in collection view: \(count)")
+        return count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "GlimpseCell", for: indexPath) as! GlimpseCell
+        let glimpse = accountVM.ortherGlimpse[indexPath.item]
+        print("Configuring cell at index \(indexPath.item) with image URL: \(glimpse.image)")
+        cell.configure(with: glimpse.image)
+        return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let numberOfItemsPerRow: CGFloat = 3
+        let padding: CGFloat = 10
+        let totalPadding = (2 * padding) + ((numberOfItemsPerRow - 1) * padding)
+        let width = (collectionView.frame.width - totalPadding) / numberOfItemsPerRow
+        let size = CGSize(width: width, height: width)
+        return size
+    }
+    
+}
+

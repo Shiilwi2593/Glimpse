@@ -465,7 +465,6 @@ class FriendsViewModel {
             }
             
             do {
-                
                 let user = try JSONDecoder().decode(User.self, from: data)
                 completion(user)
             } catch {
