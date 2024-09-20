@@ -226,6 +226,8 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
                 self.statsStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
             }
         }
+        tabBarController?.tabBar.isHidden = false
+        self.navigationItem.setHidesBackButton(true, animated: true)
     }
     
     func createStatsViews() {
@@ -418,21 +420,32 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
     
     //MARK: - Menu Creation
     private func createMenu() -> UIMenu {
-        let editAction = UIAction(title: "Edit Profile", image: UIImage(systemName: "pencil")) { _ in
+        let changeUsername = UIAction(title: "Change username", image: UIImage(systemName: "pencil")) { _ in
             self.editButtonTapped()
+        }
+        
+        let changePassword = UIAction(title: "Change password", image: UIImage(systemName: "key")){_ in
+            self.changePasswordBtnTapped()
         }
         
         let logoutAction = UIAction(title: "Logout", image: UIImage(systemName: "arrow.right.square")) { _ in
             self.logoutButtonTapped()
         }
         
-        return UIMenu(title: "", options: .displayInline, children: [editAction, logoutAction])
+        return UIMenu(title: "", options: .displayInline, children: [changeUsername, changePassword, logoutAction])
     }
     
     //MARK: - Actions
     @objc private func editButtonTapped() {
-        print("Edit button tapped")
-        // Navigate to Edit User Info screen
+        let vc = ChangeUsernameViewController()
+        navigationController?.pushViewController(vc, animated: true)
+        tabBarController?.tabBar.isHidden = true
+    }
+    
+    @objc private func changePasswordBtnTapped(){
+        let vc = ChangePasswordViewController()
+        navigationController?.pushViewController(vc, animated: true)
+        tabBarController?.tabBar.isHidden = true
     }
     
     @objc private func logoutButtonTapped() {
@@ -587,5 +600,6 @@ extension AccountViewController: UICollectionViewDataSource, UICollectionViewDel
     }
     
 }
+
 
 

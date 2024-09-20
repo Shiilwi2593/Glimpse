@@ -24,6 +24,8 @@
 		2B66D34F2C8F20E7002CC70C /* FriendRequestCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B66D34E2C8F20E7002CC70C /* FriendRequestCell.swift */; };
 		2B66D3512C8F3C4E002CC70C /* FriendRequestsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B66D3502C8F3C4E002CC70C /* FriendRequestsViewController.swift */; };
 		2B6AD9E62C9ACD31003A9454 /* Glimpse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6AD9E52C9ACD31003A9454 /* Glimpse.swift */; };
+		2B713FCA2C9D7DC2009B7789 /* ChangeUsernameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B713FC92C9D7DC2009B7789 /* ChangeUsernameViewController.swift */; };
+		2B713FCC2C9DAE4D009B7789 /* ChangePasswordViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B713FCB2C9DAE4D009B7789 /* ChangePasswordViewController.swift */; };
 		2B8F23442C79CB0D005406DD /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8F23432C79CB0D005406DD /* User.swift */; };
 		2B8F23462C79D198005406DD /* SignUp2ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8F23452C79D198005406DD /* SignUp2ViewController.swift */; };
 		2B8F23482C79D773005406DD /* SignUpViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8F23472C79D773005406DD /* SignUpViewModel.swift */; };
@@ -59,6 +61,8 @@
 		2B66D34E2C8F20E7002CC70C /* FriendRequestCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendRequestCell.swift; sourceTree = "<group>"; };
 		2B66D3502C8F3C4E002CC70C /* FriendRequestsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendRequestsViewController.swift; sourceTree = "<group>"; };
 		2B6AD9E52C9ACD31003A9454 /* Glimpse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Glimpse.swift; sourceTree = "<group>"; };
+		2B713FC92C9D7DC2009B7789 /* ChangeUsernameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangeUsernameViewController.swift; sourceTree = "<group>"; };
+		2B713FCB2C9DAE4D009B7789 /* ChangePasswordViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangePasswordViewController.swift; sourceTree = "<group>"; };
 		2B8F23432C79CB0D005406DD /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		2B8F23452C79D198005406DD /* SignUp2ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUp2ViewController.swift; sourceTree = "<group>"; };
 		2B8F23472C79D773005406DD /* SignUpViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpViewModel.swift; sourceTree = "<group>"; };
@@ -104,6 +108,7 @@
 				2B66D3502C8F3C4E002CC70C /* FriendRequestsViewController.swift */,
 				2BB1146D2C903D36008E94E1 /* SearchListCell.swift */,
 				2B43AA552C957B9E003287E6 /* FriendCell.swift */,
+				2B713FC92C9D7DC2009B7789 /* ChangeUsernameViewController.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -149,6 +154,7 @@
 				2B159E802C7DBF6C00E3F0CF /* OTPSheetViewController.swift */,
 				2B0F25F72C92D12400DE3F92 /* OrtherAccountViewController.swift */,
 				2BAC4F442C9BFC470016F999 /* GlimpseCell.swift */,
+				2B713FCB2C9DAE4D009B7789 /* ChangePasswordViewController.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -270,6 +276,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B713FCC2C9DAE4D009B7789 /* ChangePasswordViewController.swift in Sources */,
 				2B0DAE172C7F2852009F6FD3 /* alertFont.swift in Sources */,
 				2B4E01EE2C86D0E700EEDBDF /* TestViewController.swift in Sources */,
 				2B224A382C995B8E002AD6DB /* uploadImgCloud.swift in Sources */,
@@ -280,6 +287,7 @@
 				2B4E01F02C87331200EEDBDF /* Test2ViewController.swift in Sources */,
 				2B43AA562C957B9E003287E6 /* FriendCell.swift in Sources */,
 				2B1534822C7B13CC0071C228 /* AccountViewController.swift in Sources */,
+				2B713FCA2C9D7DC2009B7789 /* ChangeUsernameViewController.swift in Sources */,
 				2BF0D2A12C81BF6500D5F0E0 /* ImageUrlFunc.swift in Sources */,
 				2BE0E8802C637E4A00D48CEF /* LoginViewController.swift in Sources */,
 				2BE0E8832C6382A000D48CEF /* transferToHexColor.swift in Sources */,
