@@ -7,6 +7,7 @@
 
 import UIKit
 import Cloudinary
+import MapKit
 
 class AccountViewController: UIViewController, UINavigationControllerDelegate {
     
@@ -14,6 +15,9 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
     let mapVM = MapViewModel()
     let friendVM = FriendsViewModel()
     let accountVM = AccountViewModel()
+    private var mapViewContainer: UIView?
+    private var dimmedView: UIView?
+    private var imageViewContainer: UIView?
     
     
     //MARK: -UI
@@ -303,6 +307,11 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
         friendsListVw.dataSource = self
         friendsListVw.delegate = self
         
+        dimmedView = UIView(frame: view.bounds)
+        dimmedView?.backgroundColor = UIColor.black.withAlphaComponent(0.5)
+        dimmedView?.alpha = 0
+        view.addSubview(dimmedView!)
+        
         NSLayoutConstraint.activate([
             avatarImg.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
             avatarImg.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -361,7 +370,7 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
             
             noFrLbl.centerXAnchor.constraint(equalTo: friendsListVw.centerXAnchor),
             noFrLbl.centerYAnchor.constraint(equalTo: friendsListVw.centerYAnchor)
-
+            
         ])
         
         [glimpseBtn, friendsBtn].forEach { $0.translatesAutoresizingMaskIntoConstraints = false }
@@ -577,15 +586,12 @@ extension AccountViewController: UITableViewDelegate, UITableViewDataSource, UII
 
 extension AccountViewController: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        let count = accountVM.glimpse.count
-        print("Number of items in collection view: \(count)")
-        return count
+        return accountVM.glimpse.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "GlimpseCell", for: indexPath) as! GlimpseCell
         let glimpse = accountVM.glimpse[indexPath.item]
-        print("Configuring cell at index \(indexPath.item) with image URL: \(glimpse.image)")
         cell.configure(with: glimpse.image)
         return cell
     }
@@ -595,11 +601,183 @@ extension AccountViewController: UICollectionViewDataSource, UICollectionViewDel
         let padding: CGFloat = 10
         let totalPadding = (2 * padding) + ((numberOfItemsPerRow - 1) * padding)
         let width = (collectionView.frame.width - totalPadding) / numberOfItemsPerRow
-        let size = CGSize(width: width, height: width)
-        return size
+        return CGSize(width: width, height: width)
     }
     
-}
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let glimpse = accountVM.glimpse[indexPath.item]
+        showImageView(for: glimpse)
+    }
+    
+    
+    private func showImageView(for glimpse: Glimpse) {
+        dimmedView?.alpha = 1
+        
+        let imageViewContainer = UIView(frame: CGRect(x: 0, y: 0, width: 350, height: 350))
+        imageViewContainer.center = view.center
+        imageViewContainer.backgroundColor = .white
+        imageViewContainer.layer.cornerRadius = 10
+        imageViewContainer.clipsToBounds = true
+        
+        let imageView = UIImageView(frame: imageViewContainer.bounds)
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        imageView.downloaded(from: glimpse.image)
+        imageViewContainer.addSubview(imageView)
+        
+        // Thêm một lớp overlay để đảm bảo hình ảnh không bị lộ ra ngoài
+        let overlayView = UIView(frame: imageViewContainer.bounds)
+        overlayView.backgroundColor = .black
+        overlayView.layer.cornerRadius = 10
+        overlayView.layer.masksToBounds = true
+        imageViewContainer.addSubview(overlayView)
+        imageViewContainer.sendSubviewToBack(overlayView)
+        
+        // Điều chỉnh nút "Show Location"
+        let buttonWidth: CGFloat = 150
+        let buttonHeight: CGFloat = 40
+        let showLocationButton = UIButton(frame: CGRect(
+            x: (imageViewContainer.bounds.width - buttonWidth) / 2,
+            y: imageViewContainer.bounds.height - buttonHeight - 20,
+            width: buttonWidth,
+            height: buttonHeight
+        ))
+        showLocationButton.setTitle("Show Location", for: .normal)
+        showLocationButton.backgroundColor = .black
+        showLocationButton.setTitleColor(.white, for: .normal)
+        showLocationButton.layer.cornerRadius = 10
+        showLocationButton.addTarget(self, action: #selector(showLocation(_:)), for: .touchUpInside)
+        imageViewContainer.addSubview(showLocationButton)
+        
+        showLocationButton.tag = glimpse.id.hashValue
+        
+        let closeButton = UIButton(frame: CGRect(x: imageViewContainer.bounds.width - 40, y: 0, width: 44, height: 44))
+        closeButton.setImage(UIImage(systemName: "xmark.square.fill"), for: .normal)
+        closeButton.backgroundColor = .black
+        closeButton.addTarget(self, action: #selector(closeImageView), for: .touchUpInside)
+        imageViewContainer.addSubview(closeButton)
+        
+        // Cập nhật nút xóa
+        let deleteButtonSize: CGFloat = 50
+         let deleteButton = UIButton(frame: CGRect(
+             x: 10,
+             y: imageViewContainer.bounds.height - deleteButtonSize - 10,
+             width: deleteButtonSize,
+             height: deleteButtonSize
+         ))
+         
+         // Cấu hình nút xóa với biểu tượng lớn hơn
+         var config = UIButton.Configuration.plain()
+         config.image = UIImage(systemName: "xmark.bin.circle.fill")
+         config.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: deleteButtonSize * 0.6, weight: .bold)
+         config.background.backgroundColor = .black
+         deleteButton.configuration = config
+         
+         deleteButton.tintColor = .white
+         deleteButton.layer.cornerRadius = deleteButtonSize / 2
+         deleteButton.clipsToBounds = true
+         deleteButton.addTarget(self, action: #selector(deleteGlimpse(_:)), for: .touchUpInside)
+        deleteButton.accessibilityIdentifier = glimpse.id
+         imageViewContainer.addSubview(deleteButton)
+        
+        self.view.addSubview(imageViewContainer)
+        self.imageViewContainer = imageViewContainer
+        
+        imageViewContainer.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+        UIView.animate(withDuration: 0.3) {
+            imageViewContainer.transform = .identity
+        }
+    }
 
+    @objc private func deleteGlimpse(_ sender: UIButton) {
+        guard let glimpseId = sender.accessibilityIdentifier,
+              let glimpse = accountVM.glimpse.first(where: { $0.id == glimpseId }) else {
+            print("Glimpse not found")
+            return
+        }
+
+        accountVM.deleteUserGlimpse(glimpseId: glimpse.id) { [weak self] success in
+            DispatchQueue.main.async {
+                if success {
+                    self?.showAlert(message: "Deleted successfully")
+                    self?.closeImageView()
+                    self?.viewWillAppear(true)
+                } else {
+                    self?.showAlert(message: "Failed to delete")
+                }
+            }
+        }
+    }
+    
+    @objc private func showLocation(_ sender: UIButton) {
+        let glimpse = accountVM.glimpse.first { $0.id.hashValue == sender.tag }
+        guard let glimpse = glimpse else { return }
+        showMapView(for: glimpse)
+    }
+    
+    @objc private func closeImageView() {
+        UIView.animate(withDuration: 0.3, animations: {
+            self.imageViewContainer?.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+        }, completion: { _ in
+            self.imageViewContainer?.removeFromSuperview()
+            self.imageViewContainer = nil
+            self.dimmedView?.alpha = 0
+        })
+    }
+    
+    // Hàm để hiển thị bản đồ
+    private func showMapView(for glimpse: Glimpse) {
+        // Tạo UIView cho bản đồ
+        let mapViewContainer = UIView(frame: CGRect(x: 0, y: 0, width: 350, height: 350))
+        mapViewContainer.center = view.center
+        mapViewContainer.backgroundColor = .white
+        mapViewContainer.layer.cornerRadius = 10
+        mapViewContainer.clipsToBounds = true
+        
+        let mapView = MKMapView(frame: mapViewContainer.bounds)
+        mapViewContainer.addSubview(mapView)
+        
+        let coordinate = CLLocationCoordinate2D(latitude: glimpse.location.latitude, longitude: glimpse.location.longitude)
+        
+        let annotation = MKPointAnnotation()
+        annotation.coordinate = coordinate
+        annotation.title = "Glimpse Location"
+        mapView.addAnnotation(annotation)
+        
+        let region = MKCoordinateRegion(center: coordinate, latitudinalMeters: 1000, longitudinalMeters: 1000)
+        mapView.setRegion(region, animated: true)
+        
+        // Tạo nút đóng
+        let closeButton = UIButton(frame: CGRect(x: mapViewContainer.bounds.width - 40, y: 0, width: 44, height: 44))
+        closeButton.setImage(UIImage(systemName: "xmark.square.fill"), for: .normal)
+        closeButton.addTarget(self, action: #selector(closeMapView), for: .touchUpInside)
+        mapViewContainer.addSubview(closeButton)
+        
+        self.view.addSubview(mapViewContainer)
+        self.mapViewContainer = mapViewContainer
+        
+        // Animate mapViewContainer
+        mapViewContainer.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+        UIView.animate(withDuration: 0.5) {
+            mapViewContainer.transform = .identity
+        }
+    }
+    
+    @objc private func closeMapView() {
+        UIView.animate(withDuration: 0.5, animations: {
+            self.mapViewContainer?.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+        }, completion: { _ in
+            self.mapViewContainer?.removeFromSuperview()
+            self.mapViewContainer = nil
+            self.dimmedView?.alpha = 0
+        })
+    }
+    
+    private func showAlert(message: String) {
+        let alert = UIAlertController(title: "", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
+}
 
 

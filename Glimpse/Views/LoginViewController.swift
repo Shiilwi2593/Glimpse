@@ -94,6 +94,7 @@ class LoginViewController: UIViewController {
         forgotPassword.text = "Forgot password?"
         forgotPassword.font = UIFont.systemFont(ofSize: 14, weight: .light)
         forgotPassword.textColor = UIColor(hex: "A8A6A6")
+        forgotPassword.isUserInteractionEnabled = true
         return forgotPassword
     }()
     
@@ -174,7 +175,8 @@ class LoginViewController: UIViewController {
         loginBtn.addTarget(self, action: #selector(loginBtnTapped), for: .touchUpInside)
         
         
-        
+        let forgotPasswordTap = UITapGestureRecognizer(target: self, action: #selector(didTapForgotPassword))
+         forgotPassword.addGestureRecognizer(forgotPasswordTap)
         
         NSLayoutConstraint.activate([
             loginViewBackGround.leadingAnchor.constraint(equalTo: view.leadingAnchor,constant: 5),
@@ -301,6 +303,12 @@ class LoginViewController: UIViewController {
         navigationItem.backButtonTitle = "Log in"
     }
     
+    @objc private func didTapForgotPassword() {
+        let resetPasswordVC = ResetPasswordViewController() // Assume you have this view controller
+        resetPasswordVC.modalPresentationStyle = .fullScreen
+        navigationController?.pushViewController(resetPasswordVC, animated: true)
+    }
+    
    @objc private func loginBtnTapped(){
         print("Login button tapped")
         
@@ -322,29 +330,24 @@ class LoginViewController: UIViewController {
             return
         }
         
-        // Start the login process
         self.loginVM.login(email: email, password: password) { success, token in
             DispatchQueue.main.async {
                 if success {
-                    // Show a loading indicator if login is successful
                     let activityIndicator = UIActivityIndicatorView(style: .large)
                     activityIndicator.center = self.view.center
                     activityIndicator.startAnimating()
                     self.view.addSubview(activityIndicator)
                     
-                    // Disable the login button during loading
                     self.loginBtn.isEnabled = false
                     
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                         activityIndicator.stopAnimating()
                         activityIndicator.removeFromSuperview()
                         
-                        // Save login status and token
                         UserDefaults.standard.set(true, forKey: "isLoggedIn")
                         UserDefaults.standard.set(token, forKey: "authToken")
                         print("Token: \(token ?? "No token")")
                         
-                        // Navigate to the next screen
                         let vc = TabBarViewController()
                         self.navigationController?.pushViewController(vc, animated: true)
                         self.navigationItem.setHidesBackButton(true, animated: true)
@@ -352,7 +355,6 @@ class LoginViewController: UIViewController {
 
                     }
                 } else {
-                    // Show an alert if login fails
                     let alert = UIAlertController(title: "", message: "Invalid email or password.", preferredStyle: .alert)
                     alert.addAction(UIAlertAction(title: "OK", style: .default))
                     self.present(alert, animated: true)
@@ -360,8 +362,4 @@ class LoginViewController: UIViewController {
             }
         }
     }
-
-    
-    
-    
 }

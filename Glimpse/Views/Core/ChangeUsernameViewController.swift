@@ -153,7 +153,7 @@ class ChangeUsernameViewController: UIViewController {
             return
         }
         
-        guard let url = URL(string: "https://glimpse-server.onrender.com/api/users/changeUsername") else {
+        guard let url = URL(string: "lo/api/users/changeUsername") else {
             print("invalid url")
             return
         }

@@ -26,6 +26,7 @@
 		2B6AD9E62C9ACD31003A9454 /* Glimpse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6AD9E52C9ACD31003A9454 /* Glimpse.swift */; };
 		2B713FCA2C9D7DC2009B7789 /* ChangeUsernameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B713FC92C9D7DC2009B7789 /* ChangeUsernameViewController.swift */; };
 		2B713FCC2C9DAE4D009B7789 /* ChangePasswordViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B713FCB2C9DAE4D009B7789 /* ChangePasswordViewController.swift */; };
+		2B713FCE2C9DB7A1009B7789 /* ResetPasswordViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B713FCD2C9DB7A1009B7789 /* ResetPasswordViewController.swift */; };
 		2B8F23442C79CB0D005406DD /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8F23432C79CB0D005406DD /* User.swift */; };
 		2B8F23462C79D198005406DD /* SignUp2ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8F23452C79D198005406DD /* SignUp2ViewController.swift */; };
 		2B8F23482C79D773005406DD /* SignUpViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8F23472C79D773005406DD /* SignUpViewModel.swift */; };
@@ -63,6 +64,7 @@
 		2B6AD9E52C9ACD31003A9454 /* Glimpse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Glimpse.swift; sourceTree = "<group>"; };
 		2B713FC92C9D7DC2009B7789 /* ChangeUsernameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangeUsernameViewController.swift; sourceTree = "<group>"; };
 		2B713FCB2C9DAE4D009B7789 /* ChangePasswordViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangePasswordViewController.swift; sourceTree = "<group>"; };
+		2B713FCD2C9DB7A1009B7789 /* ResetPasswordViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResetPasswordViewController.swift; sourceTree = "<group>"; };
 		2B8F23432C79CB0D005406DD /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		2B8F23452C79D198005406DD /* SignUp2ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUp2ViewController.swift; sourceTree = "<group>"; };
 		2B8F23472C79D773005406DD /* SignUpViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpViewModel.swift; sourceTree = "<group>"; };
@@ -109,6 +111,7 @@
 				2BB1146D2C903D36008E94E1 /* SearchListCell.swift */,
 				2B43AA552C957B9E003287E6 /* FriendCell.swift */,
 				2B713FC92C9D7DC2009B7789 /* ChangeUsernameViewController.swift */,
+				2B713FCD2C9DB7A1009B7789 /* ResetPasswordViewController.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -295,6 +298,7 @@
 				2B1534852C7B33870071C228 /* LoginViewModel.swift in Sources */,
 				2B66D34F2C8F20E7002CC70C /* FriendRequestCell.swift in Sources */,
 				2BE0E86C2C636D8C00D48CEF /* StartViewController.swift in Sources */,
+				2B713FCE2C9DB7A1009B7789 /* ResetPasswordViewController.swift in Sources */,
 				2B8F23482C79D773005406DD /* SignUpViewModel.swift in Sources */,
 				2B0F25F82C92D12400DE3F92 /* OrtherAccountViewController.swift in Sources */,
 				2BAC4F452C9BFC470016F999 /* GlimpseCell.swift in Sources */,

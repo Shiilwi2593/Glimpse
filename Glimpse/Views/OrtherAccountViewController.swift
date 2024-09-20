@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import MapKit
 
 class OrtherAccountViewController: UIViewController {
     
@@ -23,6 +24,9 @@ class OrtherAccountViewController: UIViewController {
     var user: User?
     let friendVM = FriendsViewModel()
     let accountVM = AccountViewModel()
+    private var mapViewContainer: UIView?
+    private var dimmedView: UIView?
+    private var imageViewContainer: UIView?
     
     
     //MARK: -UI
@@ -631,6 +635,132 @@ extension OrtherAccountViewController: UICollectionViewDataSource, UICollectionV
         let width = (collectionView.frame.width - totalPadding) / numberOfItemsPerRow
         let size = CGSize(width: width, height: width)
         return size
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let glimpse = accountVM.ortherGlimpse[indexPath.item]
+        showImageView(for: glimpse)
+    }
+
+    
+    private func showImageView(for glimpse: Glimpse) {
+        dimmedView?.alpha = 1
+        
+        let imageViewContainer = UIView(frame: CGRect(x: 0, y: 0, width: 350, height: 350))
+        imageViewContainer.center = view.center
+        imageViewContainer.backgroundColor = .white
+        imageViewContainer.layer.cornerRadius = 10
+        imageViewContainer.clipsToBounds = true
+        
+        let imageView = UIImageView(frame: imageViewContainer.bounds)
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        imageView.downloaded(from: glimpse.image)
+        imageViewContainer.addSubview(imageView)
+        
+        // Thêm một lớp overlay để đảm bảo hình ảnh không bị lộ ra ngoài
+        let overlayView = UIView(frame: imageViewContainer.bounds)
+        overlayView.backgroundColor = .black
+        overlayView.layer.cornerRadius = 10
+        overlayView.layer.masksToBounds = true
+        imageViewContainer.addSubview(overlayView)
+        imageViewContainer.sendSubviewToBack(overlayView)
+        
+        // Điều chỉnh nút "Show Location"
+        let buttonWidth: CGFloat = 150
+        let buttonHeight: CGFloat = 40
+        let showLocationButton = UIButton(frame: CGRect(
+            x: (imageViewContainer.bounds.width - buttonWidth) / 2,
+            y: imageViewContainer.bounds.height - buttonHeight - 20,
+            width: buttonWidth,
+            height: buttonHeight
+        ))
+        showLocationButton.setTitle("Show Location", for: .normal)
+        showLocationButton.backgroundColor = .black
+        showLocationButton.setTitleColor(.white, for: .normal)
+        showLocationButton.layer.cornerRadius = 10
+        showLocationButton.addTarget(self, action: #selector(showLocation(_:)), for: .touchUpInside)
+        imageViewContainer.addSubview(showLocationButton)
+        
+        showLocationButton.tag = glimpse.id.hashValue
+        
+        let closeButton = UIButton(frame: CGRect(x: imageViewContainer.bounds.width - 40, y: 0, width: 44, height: 44))
+        closeButton.setImage(UIImage(systemName: "xmark.square.fill"), for: .normal)
+        closeButton.backgroundColor = .black
+        closeButton.addTarget(self, action: #selector(closeImageView), for: .touchUpInside)
+        imageViewContainer.addSubview(closeButton)
+        
+        self.view.addSubview(imageViewContainer)
+        self.imageViewContainer = imageViewContainer
+        
+        imageViewContainer.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+        UIView.animate(withDuration: 0.3) {
+            imageViewContainer.transform = .identity
+        }
+    }
+    
+    
+    @objc private func showLocation(_ sender: UIButton) {
+        let glimpse = accountVM.ortherGlimpse.first { $0.id.hashValue == sender.tag }
+        guard let glimpse = glimpse else { return }
+        showMapView(for: glimpse)
+    }
+    
+    @objc private func closeImageView() {
+        UIView.animate(withDuration: 0.3, animations: {
+            self.imageViewContainer?.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+        }, completion: { _ in
+            self.imageViewContainer?.removeFromSuperview()
+            self.imageViewContainer = nil
+            self.dimmedView?.alpha = 0
+        })
+    }
+    
+    private func showMapView(for glimpse: Glimpse) {
+        // Tạo UIView cho bản đồ
+        let mapViewContainer = UIView(frame: CGRect(x: 0, y: 0, width: 350, height: 350))
+        mapViewContainer.center = view.center
+        mapViewContainer.backgroundColor = .white
+        mapViewContainer.layer.cornerRadius = 10
+        mapViewContainer.clipsToBounds = true
+        
+        let mapView = MKMapView(frame: mapViewContainer.bounds)
+        mapViewContainer.addSubview(mapView)
+        
+        let coordinate = CLLocationCoordinate2D(latitude: glimpse.location.latitude, longitude: glimpse.location.longitude)
+        
+        let annotation = MKPointAnnotation()
+        annotation.coordinate = coordinate
+        annotation.title = "Glimpse Location"
+        mapView.addAnnotation(annotation)
+        
+        let region = MKCoordinateRegion(center: coordinate, latitudinalMeters: 1000, longitudinalMeters: 1000)
+        mapView.setRegion(region, animated: true)
+        
+        // Tạo nút đóng
+        let closeButton = UIButton(frame: CGRect(x: mapViewContainer.bounds.width - 40, y: 0, width: 44, height: 44))
+        closeButton.setImage(UIImage(systemName: "xmark.square.fill"), for: .normal)
+        closeButton.addTarget(self, action: #selector(closeMapView), for: .touchUpInside)
+        mapViewContainer.addSubview(closeButton)
+        
+        self.view.addSubview(mapViewContainer)
+        self.mapViewContainer = mapViewContainer
+        
+        // Animate mapViewContainer
+        mapViewContainer.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+        UIView.animate(withDuration: 0.5) {
+            mapViewContainer.transform = .identity
+        }
+    }
+    
+    @objc private func closeMapView() {
+        UIView.animate(withDuration: 0.5, animations: {
+            self.mapViewContainer?.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+        }, completion: { _ in
+            self.mapViewContainer?.removeFromSuperview()
+            self.mapViewContainer = nil
+            self.dimmedView?.alpha = 0
+        })
     }
     
 }

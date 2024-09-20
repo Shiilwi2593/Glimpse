@@ -309,6 +309,35 @@ class AccountViewModel{
         }
         task.resume()
     }
+    
+    func deleteUserGlimpse(glimpseId: String, completion: @escaping (Bool) -> Void){
+        guard let url = URL(string: "https://glimpse-server.onrender.com/api/glimpse/deleteGlimpse?glimpseId=\(glimpseId)") else {
+            print("invalid url")
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        
+        let task = URLSession.shared.dataTask(with: request){data, response, error in
+            if let error = error{
+                print("invalid error")
+                return
+            }
+            
+            guard let data = data else {
+                print("invalid data")
+                return
+            }
+            
+            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]{
+                let success = json["success"] as! Bool
+                completion(success)
+            }
+            
+        }
+        task.resume()
+    }
 
 
 }

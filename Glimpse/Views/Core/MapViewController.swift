@@ -152,7 +152,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
             mapView.removeAnnotation(userAnnotation)
         } else {
             userAnnotation = MKPointAnnotation()
-            userAnnotation?.title = userName ?? "User"
+            userAnnotation?.title = userName
         }
         // Thêm annotation mới
         mapView.addAnnotation(userAnnotation!)
@@ -181,7 +181,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         
         if userAnnotation == nil {
             userAnnotation = MKPointAnnotation()
-            userAnnotation?.title = userName ?? "User"
+            userAnnotation?.title = userName
             mapView.addAnnotation(userAnnotation!)
         }
         
@@ -307,7 +307,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         containerView.addSubview(imageView)
         
         let label = UILabel(frame: CGRect(x: 0, y: 62, width: 60, height: 18))
-        label.text = userName ?? "User"
+        label.text = userName
         label.textAlignment = .center
         label.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
         label.adjustsFontSizeToFitWidth = true
@@ -382,7 +382,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
                 animateAnnotationView(imageView)
             }
             if let label = containerView.subviews.last as? UILabel {
-                label.text = userName ?? "User"
+                label.text = userName
             }
         }
     }
