@@ -437,6 +437,86 @@ class FriendsViewModel {
         task.resume()
     }
     
+    func isReceiving(senderId: String, completion: @escaping(Bool) -> Void){
+        guard let token = UserDefaults.standard.string(forKey: "authToken") else {
+            print("invalid token")
+            return
+        }
+        guard let url = URL(string: "https://glimpse-server.onrender.com/api/friend/isReceiving")else {
+            print("invalid url")
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: Any] = [
+            "token": token,
+            "senderId": senderId
+        ]
+        
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        let task = URLSession.shared.dataTask(with: request){data, response, error in
+            if let error = error {
+                print(error)
+                return
+            }
+            guard let data = data else{
+                print("invalid data")
+                return
+            }
+            if let httpResponse = response as? HTTPURLResponse {
+               if httpResponse.statusCode == 200 {
+                    completion(true)
+               } else if httpResponse.statusCode == 400 {
+                   completion(false)
+               }
+            }
+        }
+        task.resume()
+    }
+    
+    func getRequestId(senderId: String, receiverId: String, completion: @escaping (String) -> Void){
+        guard let url = URL(string: "https://glimpse-server.onrender.com/api/friend/getRequestId") else {
+            print("invalid url")
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: Any] = [
+            "senderId": senderId,
+            "receiverId": receiverId
+        ]
+        
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        
+        let task = URLSession.shared.dataTask(with: request){data, response, error in
+            if let error = error {
+                print(error)
+                return
+            }
+            
+            guard let data = data else{
+                print("invalid data")
+                return
+            }
+            
+            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                if let success = json["success"] as? Bool{
+                    if success == true{
+                        let id = json["requestId"] as! String
+                        completion(id)
+                    }
+                }
+            }
+        }
+        task.resume()
+    }
+    
     
     //MARK: -Detail Friend
     func fetchUserInfoById(id: String,completion: @escaping (User?) -> Void){

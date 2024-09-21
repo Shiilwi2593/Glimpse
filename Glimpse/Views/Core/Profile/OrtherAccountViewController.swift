@@ -185,7 +185,6 @@ class OrtherAccountViewController: UIViewController {
     override func viewDidLoad() {
         view.backgroundColor = .white
         title = "Profile"
-        setUpNavigationBar()
         friendVM.fetchUserInfoById(id: self.id){ user in
             self.user = user
             print(self.user ?? "unknown")
@@ -210,29 +209,10 @@ class OrtherAccountViewController: UIViewController {
                 if let email = self.user?.email {
                     self.subtitleLbl.text = email
                 }
-                
-                
-                self.friendVM.isFriend(friendId: self.id) { isFriend in
-                    DispatchQueue.main.async {
-                        if isFriend {
-                            self.addFriendButton.setTitle("Friend", for: .normal)
-                            self.addFriendButton.backgroundColor = UIColor(red: 0.251, green: 0.8, blue: 0.204, alpha: 1.0)
-                        } else {
-                            self.friendVM.isPending(receiverId: self.id) { isPending in
-                                DispatchQueue.main.async {
-                                    if isPending {
-                                        self.addFriendButton.setTitle("Pending", for: .normal)
-                                        self.addFriendButton.backgroundColor = UIColor(hex: "c35ac7")
-                                    }
-                                }
-                            }
-                        }
-                        self.setupButton()
-                        self.updateAddFriendButton()
-                        
-                    }
-                }
-                
+
+                self.updateAddFriendButton()
+                self.setupButton()
+
                 self.glimpseView.isHidden = false
                 self.friendsListVw.isHidden = true
                 
@@ -398,7 +378,7 @@ class OrtherAccountViewController: UIViewController {
     }
     
     private func updateAddFriendButton() {
-        friendVM.isFriend(friendId: self.id) { isFriend in
+        self.friendVM.isFriend(friendId: self.id) { isFriend in
             DispatchQueue.main.async {
                 if isFriend {
                     self.addFriendButton.setTitle("Friend", for: .normal)
@@ -410,13 +390,20 @@ class OrtherAccountViewController: UIViewController {
                                 self.addFriendButton.setTitle("Pending", for: .normal)
                                 self.addFriendButton.backgroundColor = UIColor(hex: "c35ac7")
                             } else {
-                                self.addFriendButton.setTitle("Add Friend", for: .normal)
-                                self.addFriendButton.backgroundColor = UIColor(red: 0.16, green: 0.5, blue: 0.73, alpha: 1.0)
+                                self.friendVM.isReceiving(senderId: self.id) { isReceiving in
+                                    DispatchQueue.main.async {
+                                        if isReceiving {
+                                            self.addFriendButton.setTitle("Accept request", for: .normal)
+                                            self.addFriendButton.backgroundColor = UIColor.systemPink
+                                        }
+                                    }
+                                }
                             }
-                            self.setupButton()
                         }
                     }
                 }
+                self.setupButton()
+                self.updateAddFriendButton()
             }
         }
     }
@@ -431,6 +418,9 @@ class OrtherAccountViewController: UIViewController {
             addFriendButton.addTarget(self, action: #selector(didTapUnRequest), for: .touchUpInside)
         } else if addFriendButton.currentTitle == "Add Friend" {
             addFriendButton.addTarget(self, action: #selector(didTapAddFriend), for: .touchUpInside)
+        } else if addFriendButton.currentTitle == "Accept request"{
+            addFriendButton.addTarget(self, action: #selector(didTapAcceptRequest), for: .touchUpInside)
+            
         }
     }
     
@@ -485,6 +475,20 @@ class OrtherAccountViewController: UIViewController {
         present(alert, animated: true, completion: nil)
     }
     
+    @objc private func didTapAcceptRequest(){
+        print("didTapAcceptRequest")
+        mapVM.getUserInfoByToken { user in
+            DispatchQueue.main.async {
+                if let id2 = user?._id as? String{
+                    self.friendVM.addToFriendList(id1: self.id, id2: id2)
+                    self.friendVM.getRequestId(senderId: self.id, receiverId:id2) { requestId in
+                        self.friendVM.removeFriendRequest(requestid: requestId)
+                    }
+                }
+            }
+        }
+       
+    }
     
     @objc private func navButtonTapped(_ sender: UIButton) {
         [glimpseBtn, friendsBtn].forEach { $0.setTitleColor(.gray, for: .normal) }
@@ -509,57 +513,6 @@ class OrtherAccountViewController: UIViewController {
         
         UIView.animate(withDuration: 0.3) {
             self.selectionIndicator.frame.origin.x = sender.frame.origin.x
-        }
-    }
-    
-    //MARK: - Navigation Bar Setup
-    private func setUpNavigationBar() {
-        let menuButton = UIBarButtonItem(image: UIImage(systemName: "gearshape.2.fill")?.withTintColor(.black, renderingMode: .alwaysOriginal), style: .plain, target: nil, action: nil)
-        menuButton.menu = createMenu()
-        
-        navigationItem.rightBarButtonItem = menuButton
-    }
-    
-    //MARK: - Menu Creation
-    private func createMenu() -> UIMenu {
-        let editAction = UIAction(title: "Edit Profile", image: UIImage(systemName: "pencil")) { _ in
-            self.editButtonTapped()
-        }
-        
-        let logoutAction = UIAction(title: "Logout", image: UIImage(systemName: "arrow.right.square")) { _ in
-            self.logoutButtonTapped()
-        }
-        
-        return UIMenu(title: "", options: .displayInline, children: [editAction, logoutAction])
-    }
-    
-    //MARK: - Actions
-    @objc private func editButtonTapped() {
-        print("Edit button tapped")
-        // Navigate to Edit User Info screen
-    }
-    
-    @objc private func logoutButtonTapped() {
-        print("Logout button tapped")
-        
-        UserDefaults.standard.removeObject(forKey: "authToken")
-        
-        NotificationCenter.default.post(name: .didLogout, object: nil)
-        
-        let loginVC = LoginViewController()
-        let navController = UINavigationController(rootViewController: loginVC)
-        navController.modalPresentationStyle = .fullScreen
-        
-        let logoutSuccessAlert = UIAlertController(title: "", message: "Log out successfully", preferredStyle: .alert)
-        self.present(logoutSuccessAlert, animated: true, completion: nil)
-        
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-            if let window = windowScene.windows.first {
-                window.rootViewController = navController
-            }
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            logoutSuccessAlert.dismiss(animated: true)
         }
     }
     
