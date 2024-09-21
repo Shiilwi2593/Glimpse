@@ -189,12 +189,12 @@ class LoginViewController: UIViewController {
             loginContainer.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             loginContainer.heightAnchor.constraint(equalToConstant: 530),
             
-            emailLbl.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 30),
+            emailLbl.leadingAnchor.constraint(equalTo: emailTxtField.leadingAnchor),
             emailLbl.topAnchor.constraint(equalTo: loginContainer.topAnchor, constant: 52),
             emailLbl.heightAnchor.constraint(equalToConstant: 15),
             
             emailTxtField.topAnchor.constraint(equalTo: emailLbl.bottomAnchor, constant: 16),
-            emailTxtField.leadingAnchor.constraint(equalTo: emailLbl.leadingAnchor),
+            emailTxtField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             emailTxtField.widthAnchor.constraint(equalToConstant: 330),
             emailTxtField.heightAnchor.constraint(equalToConstant: 50),
             
@@ -203,12 +203,12 @@ class LoginViewController: UIViewController {
             emailIconView.widthAnchor.constraint(equalToConstant: 20),
             emailIconView.heightAnchor.constraint(equalToConstant: 20),
             
-            passwordLbl.leadingAnchor.constraint(equalTo: emailLbl.leadingAnchor),
+            passwordLbl.leadingAnchor.constraint(equalTo: passwordTxtField.leadingAnchor),
             passwordLbl.topAnchor.constraint(equalTo: emailTxtField.bottomAnchor, constant: 15),
             passwordLbl.heightAnchor.constraint(equalToConstant: 15),
             
             passwordTxtField.topAnchor.constraint(equalTo: passwordLbl.bottomAnchor, constant: 16),
-            passwordTxtField.leadingAnchor.constraint(equalTo: passwordLbl.leadingAnchor),
+            passwordTxtField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             passwordTxtField.widthAnchor.constraint(equalToConstant: 330),
             passwordTxtField.heightAnchor.constraint(equalToConstant: 50),
             

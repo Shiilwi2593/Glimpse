@@ -70,6 +70,10 @@ class AddFriendViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .white
         self.tabBarController?.tabBar.isHidden = true
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
+        
         setUp()
     }
     
@@ -161,6 +165,10 @@ class AddFriendViewController: UIViewController {
             }
         }
     }
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
+    }
+
 }
 
 extension AddFriendViewController: UITableViewDataSource, UITableViewDelegate{
@@ -198,7 +206,7 @@ extension AddFriendViewController: UITableViewDataSource, UITableViewDelegate{
                     print("Navigating to OrtherAccountViewController")
                     vc = OrtherAccountViewController(id: id as! String)
                 }
-
+                
                 if let sheet = vc.sheetPresentationController {
                     sheet.detents = [.large()]
                     sheet.prefersGrabberVisible = true
@@ -210,13 +218,13 @@ extension AddFriendViewController: UITableViewDataSource, UITableViewDelegate{
             }
         }
     }
-
-
+    
+    
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 70
     }
     
     
-
+    
 }

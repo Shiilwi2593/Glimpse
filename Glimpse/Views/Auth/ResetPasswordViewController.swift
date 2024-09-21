@@ -8,7 +8,7 @@
 import UIKit
 
 class ResetPasswordViewController: UIViewController {
-
+    
     let signupVM = SignUpViewModel()
     var otp: String = ""
     private var otpView: OTPView?
@@ -90,6 +90,12 @@ class ResetPasswordViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .systemGray6
         setupViews()
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        view.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
     }
     
     private func setupViews() {
@@ -155,7 +161,7 @@ class ResetPasswordViewController: UIViewController {
             showAlert(message: "Email must not be empty")
             return
         }
-    
+        
         signupVM.checkEmailAvailability(email: email) { exist, message in
             DispatchQueue.main.async {
                 if exist{
@@ -171,11 +177,11 @@ class ResetPasswordViewController: UIViewController {
                     self.showAlert(message: "This email is not associated with any account")
                 }
             }
-          
-          
+            
+            
         }
-
-       
+        
+        
     }
     
     private func confirmNewPassword() {
@@ -195,7 +201,7 @@ class ResetPasswordViewController: UIViewController {
         // For now, we'll just show a success message
         showAlert(message: "Password successfully updated")
     }
-
+    
     private func showOTPSheet() {
         otpView = OTPView()
         otpView?.modalPresentationStyle = .popover
@@ -236,7 +242,7 @@ class ResetPasswordViewController: UIViewController {
     }
     
     private var dimmingView: UIView?
-
+    
     private func hideOTPView() {
         guard let otpView = otpView else { return }
         

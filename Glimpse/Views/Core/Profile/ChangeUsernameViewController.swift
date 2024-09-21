@@ -57,11 +57,20 @@ class ChangeUsernameViewController: UIViewController {
     }()
     
     
+    
+    
     //MARK: -LifeCycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemGray6
         setupViews()
+        // Thêm tap gesture để ẩn bàn phím
+         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+         view.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
     }
 
     private func setupViews() {

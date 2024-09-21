@@ -21,6 +21,16 @@ class FriendRequestsViewController: UIViewController {
         return frRequestTableVw
     }()
     
+    private let noFriendRequest: UILabel = {
+        let noResultLbl = UILabel()
+        noResultLbl.translatesAutoresizingMaskIntoConstraints = false
+        noResultLbl.text = "No friend requests"
+        noResultLbl.textColor = .gray
+        noResultLbl.isHidden = true
+        noResultLbl.font = UIFont.systemFont(ofSize: 13, weight: .regular)
+        return noResultLbl
+    }()
+    
     //MARK: - LifeCycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -28,6 +38,9 @@ class FriendRequestsViewController: UIViewController {
         setUp()
         viewmodel.fetchFriendRequest()
         viewmodel.onFriendRequest = {
+            if self.viewmodel.friendRequest.count == 0{
+                self.noFriendRequest.isHidden = false
+            }
             self.frRequestTableVw.reloadData()
             print("Friend request reload")
         }
@@ -36,6 +49,7 @@ class FriendRequestsViewController: UIViewController {
     //MARK: - SetUp
     private func setUp() {
         view.addSubview(frRequestTableVw)
+        view.addSubview(noFriendRequest)
         
         frRequestTableVw.dataSource = self
         frRequestTableVw.delegate = self
@@ -44,7 +58,10 @@ class FriendRequestsViewController: UIViewController {
             frRequestTableVw.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
             frRequestTableVw.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
             frRequestTableVw.topAnchor.constraint(equalTo: view.topAnchor, constant: 10),
-            frRequestTableVw.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10)
+            frRequestTableVw.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10),
+            
+            noFriendRequest.centerXAnchor.constraint(equalTo: frRequestTableVw.centerXAnchor),
+            noFriendRequest.centerYAnchor.constraint(equalTo: frRequestTableVw.centerYAnchor)
         ])
     }
     
