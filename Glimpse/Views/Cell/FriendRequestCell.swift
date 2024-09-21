@@ -9,7 +9,6 @@ import UIKit
 
 class FriendRequestCell: UITableViewCell {
     
-    // UI elements
     private let profileImgView: UIImageView = {
         let profileImgView = UIImageView()
         profileImgView.translatesAutoresizingMaskIntoConstraints = false
@@ -52,7 +51,6 @@ class FriendRequestCell: UITableViewCell {
         return button
     }()
     
-    // Initialization
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupUI()
@@ -62,7 +60,6 @@ class FriendRequestCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // Setup UI
     private func setupUI() {
         contentView.addSubview(profileImgView)
         contentView.addSubview(usernameLbl)
@@ -71,7 +68,6 @@ class FriendRequestCell: UITableViewCell {
         contentView.addSubview(rejectButton)
         
         
-        // Layout constraints
         NSLayoutConstraint.activate([
             profileImgView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
             profileImgView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),

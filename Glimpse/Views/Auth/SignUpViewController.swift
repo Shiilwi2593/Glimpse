@@ -312,7 +312,6 @@ class SignUpViewController: UIViewController, UITextFieldDelegate {
     }
     
     deinit {
-        // Xóa observers khi view controller bị hủy
         NotificationCenter.default.removeObserver(self)
     }
     
@@ -327,7 +326,7 @@ class SignUpViewController: UIViewController, UITextFieldDelegate {
             
             if bottomOfTextField > topOfKeyboard {
                 let difference = bottomOfTextField - topOfKeyboard
-                self.view.frame.origin.y = -difference - 10 // Thêm 10 điểm đệm
+                self.view.frame.origin.y = -difference - 10
             }
         }
     }
@@ -363,7 +362,6 @@ class SignUpViewController: UIViewController, UITextFieldDelegate {
             return
         }
         
-        // First, check if the username is available
         signUpVM.checkUsernameAvailability(username: username) { [weak self] exists, message in
             if exists {
                 DispatchQueue.main.async {
@@ -411,7 +409,6 @@ class SignUpViewController: UIViewController, UITextFieldDelegate {
         }
         
         if let otpView = otpView {
-            // Create and configure the dimming view
             let dimmingView = UIView(frame: view.bounds)
             dimmingView.backgroundColor = UIColor.black.withAlphaComponent(0.5)
             dimmingView.alpha = 0
@@ -421,7 +418,6 @@ class SignUpViewController: UIViewController, UITextFieldDelegate {
             addChild(otpView)
             view.addSubview(otpView.view)
             
-            // Set the desired width and height for OTPView
             otpView.view.frame = CGRect(x: (view.bounds.width - 380) / 2, y: (view.bounds.height - 200) / 2, width: 380, height: 220)
             
             otpView.view.alpha = 0

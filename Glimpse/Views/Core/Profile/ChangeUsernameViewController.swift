@@ -8,7 +8,7 @@
 import UIKit
 
 class ChangeUsernameViewController: UIViewController {
-
+    
     let signUpVM = SignUpViewModel()
     
     //MARK: -UI
@@ -23,7 +23,7 @@ class ChangeUsernameViewController: UIViewController {
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
-
+    
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Change Username"
@@ -32,7 +32,7 @@ class ChangeUsernameViewController: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-
+    
     private let usernameTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Enter new username"
@@ -65,14 +65,14 @@ class ChangeUsernameViewController: UIViewController {
         view.backgroundColor = .systemGray6
         setupViews()
         // Thêm tap gesture để ẩn bàn phím
-         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
-         view.addGestureRecognizer(tapGesture)
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        view.addGestureRecognizer(tapGesture)
     }
     
     @objc private func dismissKeyboard() {
         view.endEditing(true)
     }
-
+    
     private func setupViews() {
         view.addSubview(contentView)
         contentView.addSubview(titleLabel)
@@ -80,7 +80,7 @@ class ChangeUsernameViewController: UIViewController {
         contentView.addSubview(changeUsernameButton)
         
         changeUsernameButton.addTarget(self, action: #selector(changeUsernameTapped), for: .touchUpInside)
-
+        
         NSLayoutConstraint.activate([
             contentView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             contentView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
@@ -112,7 +112,7 @@ class ChangeUsernameViewController: UIViewController {
             self.changeUsername()
         }
     }
-
+    
     private func showAlert(message: String) {
         let alert = UIAlertController(title: "", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
@@ -145,7 +145,7 @@ class ChangeUsernameViewController: UIViewController {
                                 let vc = AccountViewController()
                                 self.navigationController?.pushViewController(vc, animated: true)
                             }
-                       
+                            
                         } else {
                             self.showAlert(message: "Failed to change username.")
                         }
@@ -154,7 +154,7 @@ class ChangeUsernameViewController: UIViewController {
             }
         }
     }
-
+    
     
     func changeUsername(newUsername: String, completion: @escaping (Bool) -> Void) {
         guard let token = UserDefaults.standard.string(forKey: "authToken") else {
@@ -190,7 +190,7 @@ class ChangeUsernameViewController: UIViewController {
             if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
                 let isExist = json["success"] as! Bool
                 completion(isExist)
-
+                
             }
             
         }

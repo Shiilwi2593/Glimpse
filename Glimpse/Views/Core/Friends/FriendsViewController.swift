@@ -87,7 +87,7 @@ class FriendsViewController: UIViewController {
         super.viewWillAppear(animated)
         self.tabBarController?.tabBar.isHidden = false
         viewModel.fetchFriends()
-      
+        
         viewModel.fetchFriendRequest()
         viewModel.onFriendRequest = {
             if self.viewModel.friendRequest.count > 0 {
@@ -96,7 +96,7 @@ class FriendsViewController: UIViewController {
                 self.envelopeBtn.setImage(UIImage(systemName: "envelope")?.withTintColor(.black, renderingMode: .alwaysOriginal), for: .normal)
             }
         }
-       
+        
         friendsLstTableVw.reloadData()
     }
     
@@ -109,7 +109,7 @@ class FriendsViewController: UIViewController {
         
         envelopeBtn.addTarget(self, action: #selector(didTapEnvelopeBtn), for: .touchUpInside)
         addFrBtn.addTarget(self, action: #selector(didtapAddFrBtn), for: .touchUpInside)
-
+        
         
         NSLayoutConstraint.activate([
             friendListLbl.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 13),

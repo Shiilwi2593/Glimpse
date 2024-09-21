@@ -113,7 +113,7 @@ class SignUpViewModel {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         let body = ["email": email]
-
+        
         request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: .fragmentsAllowed)
         
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -127,7 +127,6 @@ class SignUpViewModel {
                     return
                 }
                 
-                // Log the raw response
                 if let rawResponse = String(data: data, encoding: .utf8) {
                     print("Raw server response: \(rawResponse)")
                 }
@@ -147,7 +146,7 @@ class SignUpViewModel {
                 }
             }
         }.resume()
-
+        
     }
-
+    
 }

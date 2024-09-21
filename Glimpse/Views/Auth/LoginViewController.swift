@@ -176,7 +176,7 @@ class LoginViewController: UIViewController {
         
         
         let forgotPasswordTap = UITapGestureRecognizer(target: self, action: #selector(didTapForgotPassword))
-         forgotPassword.addGestureRecognizer(forgotPasswordTap)
+        forgotPassword.addGestureRecognizer(forgotPasswordTap)
         
         NSLayoutConstraint.activate([
             loginViewBackGround.leadingAnchor.constraint(equalTo: view.leadingAnchor,constant: 5),
@@ -249,7 +249,6 @@ class LoginViewController: UIViewController {
         
         let keyboardTopY = view.frame.height - keyboardFrame.height
         
-        // Tính toán sự chồng chéo
         let emailTxtFieldBottomY = emailTxtField.frame.maxY
         let passwordTxtFieldBottomY = passwordTxtField.frame.maxY
         let loginContainerBottomY = loginContainer.frame.maxY
@@ -258,16 +257,15 @@ class LoginViewController: UIViewController {
         let overlapPasswordTxtField = passwordTxtFieldBottomY - keyboardTopY
         let overlapLoginContainer = loginContainerBottomY - keyboardTopY
         
-        // Chỉ di chuyển các phần tử bị chồng chéo với bàn phím
         if overlapEmailTxtField > 0 || overlapPasswordTxtField > 0 || overlapLoginContainer > 0 {
             UIView.animate(withDuration: 0.3) {
                 let translationY: CGFloat
                 if overlapLoginContainer > 0 {
-                    translationY = -min(overlapLoginContainer + 20, 100) // Di chuyển tất cả các phần tử, giới hạn di chuyển ở 100 điểm
+                    translationY = -min(overlapLoginContainer + 20, 100)
                 } else if overlapPasswordTxtField > 0 {
-                    translationY = -min(overlapPasswordTxtField + 20, 100) // Di chuyển các phần tử đến trên trường mật khẩu, giới hạn di chuyển ở 100 điểm
+                    translationY = -min(overlapPasswordTxtField + 20, 100)
                 } else {
-                    translationY = -min(overlapEmailTxtField + 20, 100) // Di chuyển các phần tử đến trên trường email, giới hạn di chuyển ở 100 điểm
+                    translationY = -min(overlapEmailTxtField + 20, 100)
                 }
                 self.view.transform = CGAffineTransform(translationX: 0, y: translationY)
             }
@@ -304,15 +302,14 @@ class LoginViewController: UIViewController {
     }
     
     @objc private func didTapForgotPassword() {
-        let resetPasswordVC = ResetPasswordViewController() // Assume you have this view controller
+        let resetPasswordVC = ResetPasswordViewController()
         resetPasswordVC.modalPresentationStyle = .fullScreen
         navigationController?.pushViewController(resetPasswordVC, animated: true)
     }
     
-   @objc private func loginBtnTapped(){
+    @objc private func loginBtnTapped(){
         print("Login button tapped")
         
-        // Animate the login button to indicate it's been tapped
         UIView.animate(withDuration: 0.5, animations: {
             self.loginBtn.alpha = 0.5
         }, completion: { _ in
@@ -321,7 +318,6 @@ class LoginViewController: UIViewController {
             }
         })
         
-        // Ensure both email and password fields are filled
         guard let email = emailTxtField.text, !email.isEmpty,
               let password = passwordTxtField.text, !password.isEmpty else {
             let alert = UIAlertController(title: "", message: "All fields are required", preferredStyle: .alert)
@@ -352,7 +348,7 @@ class LoginViewController: UIViewController {
                         self.navigationController?.pushViewController(vc, animated: true)
                         self.navigationItem.setHidesBackButton(true, animated: true)
                         self.navigationController?.navigationBar.isHidden = true
-
+                        
                     }
                 } else {
                     let alert = UIAlertController(title: "", message: "Invalid email or password.", preferredStyle: .alert)

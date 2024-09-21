@@ -200,7 +200,7 @@ class AccountViewModel{
         
         let body: [String: Any] = [
             "token": token,
-            "imageUrl": url // Make sure `url` is a String
+            "imageUrl": url 
         ]
         
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
@@ -221,7 +221,7 @@ class AccountViewModel{
                 return
             }
         }
-        task.resume() // Make sure to start the task
+        task.resume()
     }
     
     let mapVM = MapViewModel()
@@ -236,32 +236,32 @@ class AccountViewModel{
                 print("invalid url")
                 return
             }
-
+            
             var request = URLRequest(url: url)
             request.httpMethod = "GET"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
+            
             let task = URLSession.shared.dataTask(with: request) { data, response, error in
                 if let error = error {
                     print(error)
                     return
                 }
-
+                
                 guard let data = data else {
                     print("invalid data")
                     return
                 }
-
+                
                 let decoder = JSONDecoder()
                 decoder.dateDecodingStrategy = .iso8601
-
+                
                 let dateFormatter = DateFormatter()
                 dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
                 decoder.dateDecodingStrategy = .formatted(dateFormatter)
-
+                
                 do {
                     let glimpses = try decoder.decode([Glimpse].self, from: data)
-                    self.glimpse = glimpses // Update the glimpse array
+                    self.glimpse = glimpses
                     completion()
                 } catch {
                     print("Decoding error: \(error)")
@@ -286,22 +286,22 @@ class AccountViewModel{
                 print(error)
                 return
             }
-
+            
             guard let data = data else {
                 print("invalid data")
                 return
             }
-
+            
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
-
+            
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
             decoder.dateDecodingStrategy = .formatted(dateFormatter)
-
+            
             do {
                 let glimpses = try decoder.decode([Glimpse].self, from: data)
-                self.ortherGlimpse = glimpses // Update the glimpse array
+                self.ortherGlimpse = glimpses
                 completion()
             } catch {
                 print("Decoding error: \(error)")
@@ -338,6 +338,6 @@ class AccountViewModel{
         }
         task.resume()
     }
-
-
+    
+    
 }

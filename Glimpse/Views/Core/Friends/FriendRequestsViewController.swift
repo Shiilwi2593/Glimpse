@@ -11,7 +11,7 @@ class FriendRequestsViewController: UIViewController {
     
     private var viewmodel = FriendsViewModel()
     var onFriendRequestAccepted: (() -> Void)?
-
+    
     
     //MARK: - UI
     private let frRequestTableVw: UITableView = {
@@ -97,8 +97,8 @@ extension FriendRequestsViewController: UITableViewDelegate, UITableViewDataSour
         return 70
     }
     
-
-
+    
+    
     @objc private func didTapAccept(_ sender: UIButton) {
         let index = sender.tag
         let data = viewmodel.friendRequest[index]
@@ -108,11 +108,9 @@ extension FriendRequestsViewController: UITableViewDelegate, UITableViewDataSour
             viewmodel.addToFriendList(id1: senderId, id2: receiverId)
             viewmodel.removeFriendRequest(requestid: data["_id"] as! String)
             
-            // Cập nhật bảng ngay lập tức
             viewmodel.fetchFriendRequest()
             frRequestTableVw.reloadData()
             
-            // Thông báo cho FriendsViewController và đóng sheet
             onFriendRequestAccepted?()
             dismiss(animated: true, completion: nil)
             let vc = FriendsViewController()
@@ -120,14 +118,13 @@ extension FriendRequestsViewController: UITableViewDelegate, UITableViewDataSour
             navigationController?.navigationItem.hidesBackButton = true
         }
     }
-
+    
     @objc private func didTapReject(_ sender: UIButton) {
         let index = sender.tag
         let data = viewmodel.friendRequest[index]
         viewmodel.removeFriendRequest(requestid: data["_id"] as! String)
         
-        // Cập nhật bảng ngay lập tức
-        viewmodel.fetchFriendRequest() // Đảm bảo rằng bạn cập nhật danh sách yêu cầu bạn bè
+        viewmodel.fetchFriendRequest()
         frRequestTableVw.reloadData()
     }
 }

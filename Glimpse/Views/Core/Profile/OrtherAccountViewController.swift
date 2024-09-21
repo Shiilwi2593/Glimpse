@@ -233,8 +233,6 @@ class OrtherAccountViewController: UIViewController {
                     }
                 }
                 
-                
-                
                 self.glimpseView.isHidden = false
                 self.friendsListVw.isHidden = true
                 
@@ -397,10 +395,6 @@ class OrtherAccountViewController: UIViewController {
         glimpseBtn.tag = 0
         friendsBtn.addTarget(self, action: #selector(navButtonTapped), for: .touchUpInside)
         friendsBtn.tag = 1
-        
-        
-        
-        
     }
     
     private func updateAddFriendButton() {
@@ -618,7 +612,7 @@ extension OrtherAccountViewController: UITableViewDelegate, UITableViewDataSourc
                     self.present(vc, animated: true, completion: nil)
                 }
             }
-          
+            
         }
     }
     
@@ -656,7 +650,7 @@ extension OrtherAccountViewController: UICollectionViewDataSource, UICollectionV
         let glimpse = accountVM.ortherGlimpse[indexPath.item]
         showImageView(for: glimpse)
     }
-
+    
     
     private func showImageView(for glimpse: Glimpse) {
         dimmedView?.alpha = 1

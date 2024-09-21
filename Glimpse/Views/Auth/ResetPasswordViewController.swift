@@ -197,8 +197,6 @@ class ResetPasswordViewController: UIViewController {
             return
         }
         
-        // Here you would typically call an API to update the password
-        // For now, we'll just show a success message
         showAlert(message: "Password successfully updated")
     }
     

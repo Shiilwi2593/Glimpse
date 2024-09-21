@@ -40,10 +40,10 @@ class FriendCell: UITableViewCell {
         contentView.addSubview(profileImgView)
         contentView.addSubview(usernameLbl)
         contentView.addSubview(emailLbl)
-
+        
         profileImgView.layer.cornerRadius = profileImgView.frame.height / 2
         profileImgView.clipsToBounds = true
-
+        
         
         NSLayoutConstraint.activate([
             profileImgView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),

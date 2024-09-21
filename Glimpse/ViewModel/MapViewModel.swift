@@ -8,7 +8,7 @@
 import Foundation
 
 class MapViewModel{
-    
+    //MARK: -MAP
     func getUserInfoByToken(completion: @escaping (User?) -> Void) {
         guard let token = UserDefaults.standard.string(forKey: "authToken") else {
             print("invalid token")
@@ -24,7 +24,6 @@ class MapViewModel{
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         
-        // Tạo task để thực hiện request
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 print("Request error: \(error)")
@@ -57,7 +56,7 @@ class MapViewModel{
         }
         
         var request = URLRequest(url: url)
-        request.httpMethod = "PUT" // Changed to PUT
+        request.httpMethod = "PUT" 
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         let body = ["token": token, "latitude": latitude, "longitude": longitude] as [String : Any]
@@ -124,7 +123,6 @@ class MapViewModel{
                 if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]{
                     let friends = json["friends"] as? [[String: Any]]
                     completion(friends)
-                    print(friends)
                 }
             } catch {
                 print(error)

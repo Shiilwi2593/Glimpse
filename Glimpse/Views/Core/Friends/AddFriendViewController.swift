@@ -120,19 +120,15 @@ class AddFriendViewController: UIViewController {
     @objc private func didTapSearchBtn() {
         let keyword = searchInput.text ?? ""
         
-        // Bắt đầu hiệu ứng loading
         activityIndicator.startAnimating()
         
-        // Xóa dữ liệu cũ và ẩn TableView
-        frVM.searchLst.removeAll() // Xóa dữ liệu cũ
+        frVM.searchLst.removeAll()
         searchLstTableVw.reloadData()
         searchLstTableVw.isHidden = true
-        noResultLbl.isHidden = true // Ẩn nhãn "No results found" ngay từ đầu
+        noResultLbl.isHidden = true
         
-        // Bắt đầu tìm kiếm ngay lập tức
         self.frVM.findUserByKeyword(keyword: keyword)
         
-        // Đặt thời gian tối đa là 2 giây để dừng loading nếu không có kết quả
         let loadingTimeout: TimeInterval = 2.0
         let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.main)
         timer.schedule(deadline: .now() + loadingTimeout)
@@ -142,12 +138,11 @@ class AddFriendViewController: UIViewController {
                     self.activityIndicator.stopAnimating()
                     self.noResultLbl.isHidden = false
                 }
-                timer.cancel() // Hủy timer sau khi kiểm tra
+                timer.cancel()
             }
         }
         timer.resume()
         
-        // Khi danh sách kết quả cập nhật
         self.frVM.onSearchLstUpdated = {
             DispatchQueue.main.async {
                 self.activityIndicator.stopAnimating()
@@ -155,7 +150,6 @@ class AddFriendViewController: UIViewController {
                 if self.frVM.searchLst.isEmpty {
                     self.noResultLbl.isHidden = false
                 } else {
-                    // Có kết quả, hiện TableView và ẩn nhãn "No results found"
                     self.noResultLbl.isHidden = true
                     self.searchLstTableVw.isHidden = false
                     UIView.performWithoutAnimation {
@@ -168,7 +162,7 @@ class AddFriendViewController: UIViewController {
     @objc private func dismissKeyboard() {
         view.endEditing(true)
     }
-
+    
 }
 
 extension AddFriendViewController: UITableViewDataSource, UITableViewDelegate{
@@ -200,7 +194,7 @@ extension AddFriendViewController: UITableViewDataSource, UITableViewDelegate{
             DispatchQueue.main.async {
                 var vc: UIViewController
                 if isMe {
-                    print("Navigating to AccountViewController")  // Debug xem điều hướng đúng chưa
+                    print("Navigating to AccountViewController")
                     vc = AccountViewController()
                 } else {
                     print("Navigating to OrtherAccountViewController")
@@ -219,12 +213,8 @@ extension AddFriendViewController: UITableViewDataSource, UITableViewDelegate{
         }
     }
     
-    
-    
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 70
     }
-    
-    
     
 }

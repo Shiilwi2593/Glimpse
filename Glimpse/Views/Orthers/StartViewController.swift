@@ -8,10 +8,10 @@
 import UIKit
 
 class StartViewController: UIViewController {
-
+    
     //MARK: -UI
     private let startPage: UIImageView = {
-       let startPage = UIImageView()
+        let startPage = UIImageView()
         startPage.translatesAutoresizingMaskIntoConstraints = false
         startPage.image = UIImage(named: "startPage")
         return startPage
@@ -25,7 +25,7 @@ class StartViewController: UIViewController {
         SetUp()
     }
     
-
+    
     
     //MARK: SetUp
     private func SetUp(){
@@ -38,7 +38,7 @@ class StartViewController: UIViewController {
             startPage.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -20)
         ])
     }
-
-
+    
+    
 }
 

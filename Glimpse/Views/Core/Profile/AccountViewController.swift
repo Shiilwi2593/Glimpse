@@ -386,38 +386,33 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
     }
     
     @objc private func editAvatarTapped() {
-        // Hiển thị nút editAvatarBtn bị mờ đi
         UIView.animate(withDuration: 0.5, animations: {
             self.editAvatarBtn.alpha = 0.5
         }) { _ in
-            // Thêm loading view
             let loadingIndicator = UIActivityIndicatorView(style: .large)
             loadingIndicator.center = self.view.center
             self.view.addSubview(loadingIndicator)
             loadingIndicator.startAnimating()
             
-            // Mở trình chọn ảnh
             let imagePickerController = UIImagePickerController()
             imagePickerController.delegate = self
             imagePickerController.sourceType = .photoLibrary
             imagePickerController.allowsEditing = true
             self.present(imagePickerController, animated: true, completion: nil)
             
-            // Giả lập load trong 1s
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 loadingIndicator.stopAnimating()
                 loadingIndicator.removeFromSuperview()
                 
-                // Hoàn tất, hiển thị nút bình thường trở lại
                 UIView.animate(withDuration: 0.5) {
                     self.editAvatarBtn.alpha = 1.0
                 }
                 
-             
+                
             }
         }
     }
-
+    
     
     @objc private func navButtonTapped(_ sender: UIButton) {
         [glimpseBtn, friendsBtn].forEach { $0.setTitleColor(.gray, for: .normal) }
@@ -653,7 +648,6 @@ extension AccountViewController: UICollectionViewDataSource, UICollectionViewDel
         imageView.downloaded(from: glimpse.image)
         imageViewContainer.addSubview(imageView)
         
-        // Thêm một lớp overlay để đảm bảo hình ảnh không bị lộ ra ngoài
         let overlayView = UIView(frame: imageViewContainer.bounds)
         overlayView.backgroundColor = .black
         overlayView.layer.cornerRadius = 10
@@ -661,7 +655,6 @@ extension AccountViewController: UICollectionViewDataSource, UICollectionViewDel
         imageViewContainer.addSubview(overlayView)
         imageViewContainer.sendSubviewToBack(overlayView)
         
-        // Điều chỉnh nút "Show Location"
         let buttonWidth: CGFloat = 150
         let buttonHeight: CGFloat = 40
         let showLocationButton = UIButton(frame: CGRect(
@@ -685,28 +678,26 @@ extension AccountViewController: UICollectionViewDataSource, UICollectionViewDel
         closeButton.addTarget(self, action: #selector(closeImageView), for: .touchUpInside)
         imageViewContainer.addSubview(closeButton)
         
-        // Cập nhật nút xóa
         let deleteButtonSize: CGFloat = 50
-         let deleteButton = UIButton(frame: CGRect(
-             x: 10,
-             y: imageViewContainer.bounds.height - deleteButtonSize - 10,
-             width: deleteButtonSize,
-             height: deleteButtonSize
-         ))
-         
-         // Cấu hình nút xóa với biểu tượng lớn hơn
-         var config = UIButton.Configuration.plain()
-         config.image = UIImage(systemName: "xmark.bin.circle.fill")
-         config.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: deleteButtonSize * 0.6, weight: .bold)
-         config.background.backgroundColor = .black
-         deleteButton.configuration = config
-         
-         deleteButton.tintColor = .white
-         deleteButton.layer.cornerRadius = deleteButtonSize / 2
-         deleteButton.clipsToBounds = true
-         deleteButton.addTarget(self, action: #selector(deleteGlimpse(_:)), for: .touchUpInside)
+        let deleteButton = UIButton(frame: CGRect(
+            x: 10,
+            y: imageViewContainer.bounds.height - deleteButtonSize - 10,
+            width: deleteButtonSize,
+            height: deleteButtonSize
+        ))
+        
+        var config = UIButton.Configuration.plain()
+        config.image = UIImage(systemName: "xmark.bin.circle.fill")
+        config.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: deleteButtonSize * 0.6, weight: .bold)
+        config.background.backgroundColor = .black
+        deleteButton.configuration = config
+        
+        deleteButton.tintColor = .white
+        deleteButton.layer.cornerRadius = deleteButtonSize / 2
+        deleteButton.clipsToBounds = true
+        deleteButton.addTarget(self, action: #selector(deleteGlimpse(_:)), for: .touchUpInside)
         deleteButton.accessibilityIdentifier = glimpse.id
-         imageViewContainer.addSubview(deleteButton)
+        imageViewContainer.addSubview(deleteButton)
         
         self.view.addSubview(imageViewContainer)
         self.imageViewContainer = imageViewContainer
@@ -716,14 +707,14 @@ extension AccountViewController: UICollectionViewDataSource, UICollectionViewDel
             imageViewContainer.transform = .identity
         }
     }
-
+    
     @objc private func deleteGlimpse(_ sender: UIButton) {
         guard let glimpseId = sender.accessibilityIdentifier,
               let glimpse = accountVM.glimpse.first(where: { $0.id == glimpseId }) else {
             print("Glimpse not found")
             return
         }
-
+        
         accountVM.deleteUserGlimpse(glimpseId: glimpse.id) { [weak self] success in
             DispatchQueue.main.async {
                 if success {
@@ -753,9 +744,7 @@ extension AccountViewController: UICollectionViewDataSource, UICollectionViewDel
         })
     }
     
-    // Hàm để hiển thị bản đồ
     private func showMapView(for glimpse: Glimpse) {
-        // Tạo UIView cho bản đồ
         let mapViewContainer = UIView(frame: CGRect(x: 0, y: 0, width: 350, height: 350))
         mapViewContainer.center = view.center
         mapViewContainer.backgroundColor = .white
@@ -775,7 +764,6 @@ extension AccountViewController: UICollectionViewDataSource, UICollectionViewDel
         let region = MKCoordinateRegion(center: coordinate, latitudinalMeters: 1000, longitudinalMeters: 1000)
         mapView.setRegion(region, animated: true)
         
-        // Tạo nút đóng
         let closeButton = UIButton(frame: CGRect(x: mapViewContainer.bounds.width - 40, y: 0, width: 44, height: 44))
         closeButton.setImage(UIImage(systemName: "xmark.square.fill"), for: .normal)
         closeButton.addTarget(self, action: #selector(closeMapView), for: .touchUpInside)
@@ -784,7 +772,6 @@ extension AccountViewController: UICollectionViewDataSource, UICollectionViewDel
         self.view.addSubview(mapViewContainer)
         self.mapViewContainer = mapViewContainer
         
-        // Animate mapViewContainer
         mapViewContainer.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
         UIView.animate(withDuration: 0.5) {
             mapViewContainer.transform = .identity

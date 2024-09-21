@@ -392,7 +392,7 @@ class FriendsViewModel {
         }
         
         var request = URLRequest(url: url)
-        request.httpMethod = "POST" // Phải sử dụng POST
+        request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         let body: [String: Any] = [
@@ -424,9 +424,8 @@ class FriendsViewModel {
                 let jsonResponse = try JSONSerialization.jsonObject(with: data, options: [])
                 print("Response JSON: \(jsonResponse)")
                 
-                // Kiểm tra nếu có friendRequest đang pending
                 if let responseDict = jsonResponse as? [String: Any], let friendRequests = responseDict["friendRequest"] as? [[String: Any]], !friendRequests.isEmpty {
-                    completion(true) // Đang pending
+                    completion(true)
                 } else {
                     completion(false)
                 }
@@ -511,7 +510,7 @@ class FriendsViewModel {
             
             do {
                 if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                   let success = json["success"] as? Bool {  // Kiểm tra nếu JSON có key "success"
+                   let success = json["success"] as? Bool {
                     completion(success)
                 } else {
                     print("Failed to find 'success' key in JSON")

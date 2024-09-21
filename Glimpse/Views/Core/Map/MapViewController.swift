@@ -23,8 +23,8 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
     private var addGlimpseButton: UIButton!
     private var activityIndicator: UIActivityIndicatorView?
     private var activityIndicatorContainer: UIView?
-
-
+    
+    
     
     // MARK: - LifeCycle
     override func viewDidLoad() {
@@ -82,7 +82,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         addGlimpseButton.backgroundColor = UIColor(red: 0.16, green: 0.5, blue: 0.73, alpha: 1.0)
         addGlimpseButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
         
-        // Add shadow to the button
         addGlimpseButton.layer.shadowColor = UIColor.black.cgColor
         addGlimpseButton.layer.shadowOffset = CGSize(width: 0, height: 2)
         addGlimpseButton.layer.shadowRadius = 4
@@ -90,7 +89,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         
         view.addSubview(addGlimpseButton)
         
-        // Position the button in the bottom right corner
         addGlimpseButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             addGlimpseButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
@@ -101,10 +99,8 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
     }
     
     @objc private func addButtonTapped() {
-        // Handle button tap action here
         print("Add button tapped")
         openCamera()
-        // You can add your desired functionality here
     }
     
     private func openCamera(){
@@ -136,7 +132,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
                     self?.userName = user.username
                     print("Fetched username: \(self?.userName ?? "No username")")
                     self?.userImage = user.image
-                    // Update the user annotation after fetching user info
                     self?.updateUserAnnotation()
                 } else {
                     print("Failed to fetch user info.")
@@ -148,13 +143,11 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
     private func updateUserAnnotation() {
         if let userAnnotation = userAnnotation {
             userAnnotation.title = userName
-            // Xóa annotation cũ
             mapView.removeAnnotation(userAnnotation)
         } else {
             userAnnotation = MKPointAnnotation()
             userAnnotation?.title = userName
         }
-        // Thêm annotation mới
         mapView.addAnnotation(userAnnotation!)
     }
     
@@ -187,7 +180,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         
         userAnnotation?.coordinate = coordinate
         
-        // Update the annotation view
         if let annotationView = mapView.view(for: userAnnotation!) {
             updateAnnotationView(annotationView)
         }
@@ -218,11 +210,10 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
     }
     
     private func updateFriendsAnnotations(_ friends: [[String: Any]]?) {
-        // Remove only friend annotations, not the user annotation
         mapView.removeAnnotations(friendAnnotations)
         friendAnnotations.removeAll()
         
-        guard let friends = friends else { return } 
+        guard let friends = friends else { return }
         
         for friend in friends {
             if let latitude = friend["latitude"] as? Double,
@@ -235,7 +226,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
                     let annotation = MKPointAnnotation()
                     annotation.coordinate = coordinate
                     annotation.title = username
-                    annotation.subtitle = imageUrl  // Lưu URL ảnh vào subtitle để truy cập sau
+                    annotation.subtitle = imageUrl
                     friendAnnotations.append(annotation)
                 }
             }
@@ -317,7 +308,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         annotationView?.addSubview(containerView)
         annotationView?.frame.size = containerView.frame.size
         
-        // Tải và hiển thị ảnh từ URL
         if let imageUrl = userImage {
             imageView.downloaded(from: imageUrl)
         } else {
@@ -329,7 +319,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
     private func configureFriendAnnotation(_ annotationView: MKAnnotationView?) {
         var containerView = annotationView?.viewWithTag(100) as? UIView
         if containerView == nil {
-            // Create the container view if it doesn't already exist
             containerView = UIView(frame: CGRect(origin: .zero, size: CGSize(width: 60, height: 80)))
             containerView!.tag = 100
             
@@ -353,10 +342,9 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
             annotationView?.frame.size = containerView!.frame.size
         }
         
-        // Update existing image and label without creating new views
         if let imageView = containerView?.subviews.first as? UIImageView {
             if let imageUrl = annotationView?.annotation?.subtitle {
-                imageView.downloaded(from: imageUrl!)  // Download the friend's image from the URL
+                imageView.downloaded(from: imageUrl!)
             } else {
                 imageView.image = UIImage(named: "defaultavatar")
             }
@@ -368,7 +356,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
     }
     
     private func shouldAnimate(annotationView: MKAnnotationView?) -> Bool {
-        return true // Or use a condition to limit when animation happens
+        return true
     }
     
     private func updateAnnotationView(_ annotationView: MKAnnotationView?) {
@@ -391,12 +379,11 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
     private func animateAnnotationView(_ containerView: UIView) {
         containerView.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
         
-        // Animation for scaling the container view (image + label)
         UIView.animate(withDuration: 0.3, animations: {
-            containerView.transform = CGAffineTransform(scaleX: 1.1, y: 1.1) // Scale up
+            containerView.transform = CGAffineTransform(scaleX: 1.1, y: 1.1)
         }) { _ in
             UIView.animate(withDuration: 0.3) {
-                containerView.transform = CGAffineTransform.identity // Scale back to original size
+                containerView.transform = CGAffineTransform.identity
             }
         }
         
@@ -409,74 +396,67 @@ extension Notification.Name {
 }
 
 extension MapViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate{
-
+    
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-
+        
         if let image = info[.originalImage] as? UIImage {
-               print("Ảnh đã chụp: \(image)")
-
-               // Tạo và cấu hình activity indicator container
-               let container = UIView()
-               container.translatesAutoresizingMaskIntoConstraints = false
-               container.backgroundColor = UIColor(white: 0, alpha: 0.7) // Nền mờ
-               container.layer.cornerRadius = 10
-               container.layer.masksToBounds = true
-               self.view.addSubview(container)
-               self.activityIndicatorContainer = container
-               
-               // Cài đặt Auto Layout cho container
-               NSLayoutConstraint.activate([
-                   container.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
-                   container.centerYAnchor.constraint(equalTo: self.view.centerYAnchor),
-                   container.widthAnchor.constraint(equalToConstant: 120), // Chiều rộng khung
-                   container.heightAnchor.constraint(equalToConstant: 120) // Chiều cao khung
-               ])
-               
-               // Tạo và cấu hình activity indicator
-               let activityIndicator = UIActivityIndicatorView(style: .large)
-               activityIndicator.color = .white // Màu của indicator
-               activityIndicator.translatesAutoresizingMaskIntoConstraints = false
-               container.addSubview(activityIndicator)
-               activityIndicator.startAnimating()
-               
-               // Cài đặt Auto Layout cho activity indicator
-               NSLayoutConstraint.activate([
-                   activityIndicator.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-                   activityIndicator.centerYAnchor.constraint(equalTo: container.centerYAnchor)
-               ])
-               
-               // Vô hiệu hóa tương tác người dùng
-               self.view.isUserInteractionEnabled = false
-
-               uploadImage(image: image) { [weak self] url in
-                   DispatchQueue.main.async {
-                       if let url = url {
-                           print("Ảnh đã được upload thành công. URL: \(url)")
-                           self?.mapVM.uploadGlimpse(image: url)
-                           
-                           // Hiển thị alert thông báo upload thành công
-                           let alert = UIAlertController(title: "Success", message: "Upload glimpse successfully", preferredStyle: .alert)
-                           self?.present(alert, animated: true, completion: {
-                               DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                                   alert.dismiss(animated: true, completion: nil)
-                               }
-                           })
-                       } else {
-                           print("Không thể upload ảnh.")
-                       }
-                       
-                       // Dừng activity indicator và mở khóa tương tác người dùng
-                       self?.activityIndicatorContainer?.removeFromSuperview()
-                       self?.view.isUserInteractionEnabled = true
-                   }
-               }
-           }
-           picker.dismiss(animated: true, completion: nil)
-       }
-       
-       func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-           picker.dismiss(animated: true, completion: nil)
-       }
+            print("\(image)")
+            
+            let container = UIView()
+            container.translatesAutoresizingMaskIntoConstraints = false
+            container.backgroundColor = UIColor(white: 0, alpha: 0.7)
+            container.layer.cornerRadius = 10
+            container.layer.masksToBounds = true
+            self.view.addSubview(container)
+            self.activityIndicatorContainer = container
+            
+            NSLayoutConstraint.activate([
+                container.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+                container.centerYAnchor.constraint(equalTo: self.view.centerYAnchor),
+                container.widthAnchor.constraint(equalToConstant: 120),
+                container.heightAnchor.constraint(equalToConstant: 120)
+            ])
+            
+            let activityIndicator = UIActivityIndicatorView(style: .large)
+            activityIndicator.color = .white
+            activityIndicator.translatesAutoresizingMaskIntoConstraints = false
+            container.addSubview(activityIndicator)
+            activityIndicator.startAnimating()
+            
+            NSLayoutConstraint.activate([
+                activityIndicator.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+                activityIndicator.centerYAnchor.constraint(equalTo: container.centerYAnchor)
+            ])
+            
+            self.view.isUserInteractionEnabled = false
+            
+            uploadImage(image: image) { [weak self] url in
+                DispatchQueue.main.async {
+                    if let url = url {
+                        print("\(url)")
+                        self?.mapVM.uploadGlimpse(image: url)
+                        
+                        let alert = UIAlertController(title: "Success", message: "Upload glimpse successfully", preferredStyle: .alert)
+                        self?.present(alert, animated: true, completion: {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                                alert.dismiss(animated: true, completion: nil)
+                            }
+                        })
+                    } else {
+                        print("Can't upload")
+                    }
+                    
+                    self?.activityIndicatorContainer?.removeFromSuperview()
+                    self?.view.isUserInteractionEnabled = true
+                }
+            }
+        }
+        picker.dismiss(animated: true, completion: nil)
+    }
+    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true, completion: nil)
+    }
     func uploadImage(image: UIImage, completion: @escaping (String?) -> Void) {
         guard let imageData = image.jpegData(compressionQuality: 0.8) else {
             completion(nil)
@@ -511,6 +491,6 @@ extension MapViewController: UIImagePickerControllerDelegate, UINavigationContro
             
             completion(url)
         })
-
+        
     }
 }

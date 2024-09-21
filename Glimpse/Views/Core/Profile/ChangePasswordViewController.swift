@@ -85,8 +85,8 @@ class ChangePasswordViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .systemGray6
         setupViews()
-         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
-         view.addGestureRecognizer(tapGesture)
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        view.addGestureRecognizer(tapGesture)
     }
     
     @objc private func dismissKeyboard() {
@@ -164,7 +164,7 @@ class ChangePasswordViewController: UIViewController {
             }
         }
     }
-
+    
     private func showAlert(message: String) {
         let alert = UIAlertController(title: "", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))

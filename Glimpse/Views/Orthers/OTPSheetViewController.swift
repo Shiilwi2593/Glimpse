@@ -77,11 +77,11 @@ class OTPView: UIViewController {
         view.layer.masksToBounds = true
         view.layer.borderWidth = 1
         view.layer.borderColor = UIColor.systemGray4.cgColor
-
+        
         let containerView = UIView()
         containerView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(containerView)
-
+        
         containerView.addSubview(instructionLabel)
         containerView.addSubview(countdownLabel)
         containerView.addSubview(verifyButton)
@@ -90,7 +90,7 @@ class OTPView: UIViewController {
         instructionLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 10).isActive = true
         instructionLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20).isActive = true
         instructionLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20).isActive = true
-
+        
         // Layout constraints for countdownLabel
         countdownLabel.topAnchor.constraint(equalTo: instructionLabel.bottomAnchor, constant: 10).isActive = true
         countdownLabel.centerXAnchor.constraint(equalTo: containerView.centerXAnchor).isActive = true
@@ -121,13 +121,13 @@ class OTPView: UIViewController {
         verifyButton.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20).isActive = true
         verifyButton.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20).isActive = true
         verifyButton.heightAnchor.constraint(equalToConstant: 44).isActive = true
-
+        
         // Container view constraints
         containerView.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
         containerView.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
         containerView.widthAnchor.constraint(equalToConstant: 380).isActive = true
         containerView.bottomAnchor.constraint(equalTo: verifyButton.bottomAnchor, constant: 20).isActive = true
-
+        
         verifyButton.addTarget(self, action: #selector(verifyButtonTapped), for: .touchUpInside)
     }
     
