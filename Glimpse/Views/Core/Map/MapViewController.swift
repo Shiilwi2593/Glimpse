@@ -38,6 +38,9 @@ class MapViewController: UIViewController, CLLocationManagerDelegate, MKMapViewD
         Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
             self?.fetchAndUpdateFriendsLocations()
         }
+        Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
+            self?.fetchAndUpdateFriendsLocations()
+        }
     }
     
     deinit {
