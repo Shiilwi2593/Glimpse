@@ -11,6 +11,7 @@ class FriendRequestsViewController: UIViewController {
     
     private var viewmodel = FriendsViewModel()
     var onFriendRequestAccepted: (() -> Void)?
+    var onDismiss: (() -> Void)?
     
     
     //MARK: - UI
@@ -46,6 +47,9 @@ class FriendRequestsViewController: UIViewController {
         }
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        onDismiss?()
+    }
     //MARK: - SetUp
     private func setUp() {
         view.addSubview(frRequestTableVw)

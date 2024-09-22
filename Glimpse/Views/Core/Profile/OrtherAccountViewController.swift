@@ -209,10 +209,10 @@ class OrtherAccountViewController: UIViewController {
                 if let email = self.user?.email {
                     self.subtitleLbl.text = email
                 }
-
+                
                 self.updateAddFriendButton()
                 self.setupButton()
-
+                
                 self.glimpseView.isHidden = false
                 self.friendsListVw.isHidden = true
                 
@@ -379,48 +379,61 @@ class OrtherAccountViewController: UIViewController {
     
     private func updateAddFriendButton() {
         self.friendVM.isFriend(friendId: self.id) { isFriend in
+            print("isFriend check: \(isFriend)")
             DispatchQueue.main.async {
                 if isFriend {
+                    print("Setting button to Friend")
                     self.addFriendButton.setTitle("Friend", for: .normal)
                     self.addFriendButton.backgroundColor = UIColor(red: 0.251, green: 0.8, blue: 0.204, alpha: 1.0)
+                    self.setupButton()
                 } else {
                     self.friendVM.isPending(receiverId: self.id) { isPending in
+                        print("isPending check: \(isPending)")
                         DispatchQueue.main.async {
                             if isPending {
+                                print("Setting button to Pending")
                                 self.addFriendButton.setTitle("Pending", for: .normal)
                                 self.addFriendButton.backgroundColor = UIColor(hex: "c35ac7")
+                                self.setupButton()
                             } else {
                                 self.friendVM.isReceiving(senderId: self.id) { isReceiving in
+                                    print("isReceiving check: \(isReceiving)")
                                     DispatchQueue.main.async {
                                         if isReceiving {
+                                            print("Setting button to Accept request")
                                             self.addFriendButton.setTitle("Accept request", for: .normal)
                                             self.addFriendButton.backgroundColor = UIColor.systemPink
+                                        } else {
+                                            print("Setting button to Add Friend")
+                                            self.addFriendButton.setTitle("Add Friend", for: .normal)
+                                            self.addFriendButton.backgroundColor = UIColor(red: 0.16, green: 0.5, blue: 0.73, alpha: 1.0)
                                         }
+                                        self.setupButton()
                                     }
                                 }
                             }
                         }
                     }
                 }
-                self.setupButton()
-                self.updateAddFriendButton()
             }
         }
     }
     
     func setupButton() {
-        print(addFriendButton.currentTitle ?? "none title available")
+        print("Setting up button with title: \(addFriendButton.currentTitle ?? "none title available")")
         addFriendButton.removeTarget(self, action: nil, for: .allEvents)
         
-        if addFriendButton.currentTitle == "Friend" {
+        switch addFriendButton.currentTitle {
+        case "Friend":
             addFriendButton.addTarget(self, action: #selector(didTapUnfriend), for: .touchUpInside)
-        } else if addFriendButton.currentTitle == "Pending" {
+        case "Pending":
             addFriendButton.addTarget(self, action: #selector(didTapUnRequest), for: .touchUpInside)
-        } else if addFriendButton.currentTitle == "Add Friend" {
+        case "Add Friend":
             addFriendButton.addTarget(self, action: #selector(didTapAddFriend), for: .touchUpInside)
-        } else if addFriendButton.currentTitle == "Accept request"{
+        case "Accept request":
             addFriendButton.addTarget(self, action: #selector(didTapAcceptRequest), for: .touchUpInside)
-            
+        default:
+            print("Unexpected button state: \(addFriendButton.currentTitle ?? "none")")
         }
     }
     
@@ -433,6 +446,9 @@ class OrtherAccountViewController: UIViewController {
                 if success {
                     print("removed")
                     DispatchQueue.main.async {
+                        self.addFriendButton.setTitle("Add Friend", for: .normal)
+                        self.addFriendButton.backgroundColor = UIColor(red: 0.16, green: 0.5, blue: 0.73, alpha: 1.0)
+                        self.setupButton()
                         self.viewWillAppear(true)
                     }
                 } else {
@@ -452,7 +468,9 @@ class OrtherAccountViewController: UIViewController {
                 if success {
                     print("Request removed successfully")
                     DispatchQueue.main.async {
-                        self.viewWillAppear(true)
+                        self.addFriendButton.setTitle("Add Friend", for: .normal)
+                        self.addFriendButton.backgroundColor = UIColor(red: 0.16, green: 0.5, blue: 0.73, alpha: 1.0)
+                        self.setupButton()
                     }
                 } else {
                     print("Failed to remove request")
@@ -469,8 +487,8 @@ class OrtherAccountViewController: UIViewController {
             print("addfriend")
             self.friendVM.sendFriendRequest(receiverId: self.id)
             DispatchQueue.main.async {
-                self.viewWillAppear(true)
-            }
+                self.updateAddFriendButton()
+                self.viewWillAppear(true)            }
         }))
         present(alert, animated: true, completion: nil)
     }
@@ -483,11 +501,12 @@ class OrtherAccountViewController: UIViewController {
                     self.friendVM.addToFriendList(id1: self.id, id2: id2)
                     self.friendVM.getRequestId(senderId: self.id, receiverId:id2) { requestId in
                         self.friendVM.removeFriendRequest(requestid: requestId)
-                    }
+                        self.updateAddFriendButton()
+                        self.viewWillAppear(true)                    }
                 }
             }
         }
-       
+        
     }
     
     @objc private func navButtonTapped(_ sender: UIButton) {

@@ -150,6 +150,14 @@ class FriendsViewController: UIViewController {
     
     @objc private func didTapEnvelopeBtn() {
         let friendRequestViewController = FriendRequestsViewController()
+        
+        friendRequestViewController.onDismiss = { [weak self] in
+            self?.viewModel.fetchFriends()
+            self?.viewModel.onFriendsUpdated = {
+                self?.friendsLstTableVw.reloadData()
+            }
+         }
+        
         if let sheet = friendRequestViewController.sheetPresentationController{
             sheet.detents = [.medium(), .large()]
             sheet.prefersGrabberVisible = true

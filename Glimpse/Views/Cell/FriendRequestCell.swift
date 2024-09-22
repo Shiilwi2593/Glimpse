@@ -12,7 +12,7 @@ class FriendRequestCell: UITableViewCell {
     private let profileImgView: UIImageView = {
         let profileImgView = UIImageView()
         profileImgView.translatesAutoresizingMaskIntoConstraints = false
-        profileImgView.contentMode = .scaleToFill
+        profileImgView.contentMode = .scaleAspectFill
         return profileImgView
     }()
     
@@ -99,7 +99,7 @@ class FriendRequestCell: UITableViewCell {
         DispatchQueue.main.async {
             self.usernameLbl.text = username
             self.emailLbl.text = email
-            self.profileImgView.downloaded(from: image, contentMode: .scaleToFill)
+            self.profileImgView.downloaded(from: image, contentMode: .scaleAspectFill)
             self.profileImgView.layer.cornerRadius = self.profileImgView.frame.height / 2
             self.profileImgView.clipsToBounds = true
         }
