@@ -24,6 +24,6 @@
 - Maps: MapKit
 
 ## 📸 Screenshots
-- LinkDrive: https://drive.google.com/drive/folders/1MecMuMjIS40TsvdnVGfLLju8nEjQpt6L?usp=sharing
+- LinkDrive: [https://drive.google.com/drive/folders/1rFAVejVaoPK-NJ-DD6vP24M5_crEvB9p?usp=sharing]
 - LinkVideo: https://drive.google.com/file/d/108v3xyoWXjPpYwjlPiVYY0CO8b0lP4k9/view?usp=sharing
 
