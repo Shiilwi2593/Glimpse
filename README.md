@@ -1,6 +1,6 @@
 # 🎬 GLIMPSE 
 
-## UIkit(no storyboard), Firebase
+## UIkit(no storyboard), NodeJS, MongoDB
 
 > Glimpse is a real-time location-sharing app built with Swift and UIKit, using Node.js and MongoDB for the backend. The app allows users to track their own and friends' locations, post updates at their current location, and interact with their social network.
 
