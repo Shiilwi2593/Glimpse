@@ -214,6 +214,8 @@ class AccountViewController: UIViewController, UINavigationControllerDelegate {
                     self.avatarImg.downloaded(from: avatarUrl)
                 }
                 
+                self.selectionIndicator.frame.origin.x = self.glimpseBtn.frame.origin.x
+                
                 self.glimpseView.isHidden = false
                 self.friendsListVw.isHidden = true
                 
@@ -674,7 +676,6 @@ extension AccountViewController: UICollectionViewDataSource, UICollectionViewDel
         
         let closeButton = UIButton(frame: CGRect(x: imageViewContainer.bounds.width - 40, y: 0, width: 44, height: 44))
         closeButton.setImage(UIImage(systemName: "xmark.square.fill"), for: .normal)
-        closeButton.backgroundColor = .black
         closeButton.addTarget(self, action: #selector(closeImageView), for: .touchUpInside)
         imageViewContainer.addSubview(closeButton)
         
@@ -689,7 +690,6 @@ extension AccountViewController: UICollectionViewDataSource, UICollectionViewDel
         var config = UIButton.Configuration.plain()
         config.image = UIImage(systemName: "xmark.bin.circle.fill")
         config.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: deleteButtonSize * 0.6, weight: .bold)
-        config.background.backgroundColor = .black
         deleteButton.configuration = config
         
         deleteButton.tintColor = .white

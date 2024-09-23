@@ -141,12 +141,13 @@ class ResetPasswordViewController: UIViewController {
     
     @objc private func actionButtonTapped() {
         if actionButton.titleLabel?.text == "Send OTP" {
-            
             sendOTP()
         } else {
             confirmNewPassword()
         }
     }
+    
+    
     
     private func sendOTP() {
         let activityIndicator = UIActivityIndicatorView(style: .large)
@@ -183,7 +184,6 @@ class ResetPasswordViewController: UIViewController {
         
         
     }
-    
     private func confirmNewPassword() {
         guard let newPassword = newPasswordTextField.text,
               let confirmPassword = confirmPasswordTextField.text,
@@ -197,8 +197,28 @@ class ResetPasswordViewController: UIViewController {
             return
         }
         
-        showAlert(message: "Password successfully updated")
+        guard let email = emailTextField.text, !email.isEmpty else {
+            showAlert(message: "Email must not be empty")
+            return
+        }
+        
+        resetPassword(email: email, newPassword: newPassword) { success, message in
+            DispatchQueue.main.async {
+                if success {
+                    self.showAlert(message: "Password successfully updated") {
+                        // Sau khi người dùng nhấn OK trong alert, chuyển đến màn hình đăng nhập
+                        let loginVC = LoginViewController()
+                        loginVC.modalPresentationStyle = .fullScreen
+                        self.present(loginVC, animated: true, completion: nil)
+                    }
+                    
+                } else {
+                    self.showAlert(message: message ?? "Failed to reset password")
+                }
+            }
+        }
     }
+    
     
     private func showOTPSheet() {
         otpView = OTPView()
@@ -267,9 +287,67 @@ class ResetPasswordViewController: UIViewController {
         }
     }
     
-    private func showAlert(message: String) {
+    private func showAlert(message: String, completion: (() -> Void)? = nil) {
         let alert = UIAlertController(title: "", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+            completion?()
+        })
         present(alert, animated: true, completion: nil)
     }
+    
+    func resetPassword(email: String, newPassword: String, completion: @escaping (Bool, String?) -> Void) {
+        guard let url = URL(string: "https://glimpse-server.onrender.com/api/users/resetPassword") else {
+            completion(false, "Invalid URL")
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let parameters: [String: Any] = [
+            "email": email,
+            "newPassword": newPassword
+        ]
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: parameters, options: .prettyPrinted)
+        } catch let error {
+            completion(false, "Error creating JSON body: \(error.localizedDescription)")
+            return
+        }
+        
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(false, "Error: \(error.localizedDescription)")
+                return
+            }
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode == 200 {
+                    completion(true, "Password reset successfully")
+                } else {
+                    if let data = data {
+                        do {
+                            if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                               let message = json["message"] as? String {
+                                completion(false, message)
+                            } else {
+                                completion(false, "Unknown error")
+                            }
+                        } catch {
+                            completion(false, "Failed to parse response")
+                        }
+                    } else {
+                        completion(false, "No response data")
+                    }
+                }
+            }
+        }
+        
+        task.resume()
+    }
+    
+    
 }

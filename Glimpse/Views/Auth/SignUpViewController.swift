@@ -339,6 +339,8 @@ class SignUpViewController: UIViewController, UITextFieldDelegate {
     
     
     @objc private func signUpBtnTapped() {
+        animateButtonPress()
+        
         guard let username = usernameTxtField.text, !username.isEmpty,
               let email = emailTxtField.text, !email.isEmpty,
               let password = passwordTxtField.text, !password.isEmpty,
@@ -391,6 +393,20 @@ class SignUpViewController: UIViewController, UITextFieldDelegate {
             }
         }
     }
+    
+    private func animateButtonPress() {
+          let originalColor = signUpBtn.backgroundColor
+          let fadedColor = originalColor?.withAlphaComponent(0.5)
+
+          UIView.animate(withDuration: 0.1, animations: {
+              self.signUpBtn.backgroundColor = fadedColor
+          }) { _ in
+              UIView.animate(withDuration: 0.9, animations: {
+                  self.signUpBtn.backgroundColor = originalColor
+              })
+          }
+      }
+
     
     private var dimmingView: UIView?
     

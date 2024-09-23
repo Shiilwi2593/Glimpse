@@ -667,7 +667,6 @@ extension OrtherAccountViewController: UICollectionViewDataSource, UICollectionV
         
         let closeButton = UIButton(frame: CGRect(x: imageViewContainer.bounds.width - 40, y: 0, width: 44, height: 44))
         closeButton.setImage(UIImage(systemName: "xmark.square.fill"), for: .normal)
-        closeButton.backgroundColor = .black
         closeButton.addTarget(self, action: #selector(closeImageView), for: .touchUpInside)
         imageViewContainer.addSubview(closeButton)
         
