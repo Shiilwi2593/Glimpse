@@ -1,4 +1,4 @@
-# 🎬 FilmValley 
+# 🎬 GLIMPSE 
 
 ## UIkit(no storyboard), Firebase
 
