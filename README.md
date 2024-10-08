@@ -1,4 +1,4 @@
-# 🎬 GLIMPSE 
+# 🌍 GLIMPSE 
 
 ## UIkit(no storyboard), NodeJS, MongoDB
 
